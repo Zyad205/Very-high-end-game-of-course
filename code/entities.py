@@ -25,6 +25,7 @@ class Player(pygame.sprite.Sprite):
 
          # 1 - Left, 0 - Right
         self.direction = 0
+        self.type = "player"
 
         # Y axis
         self.jump = False
@@ -42,6 +43,7 @@ class Player(pygame.sprite.Sprite):
             self.animation.image,
             flip_x=self.direction,
             flip_y=False)
+        self.old_rect = self.rect
         self.input()
         
         self.last_animation_update = self.animation.update()

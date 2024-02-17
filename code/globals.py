@@ -1,6 +1,8 @@
 from sys import argv
 from os.path import dirname
 
+DEBUGGING = True
+
 # PATHS
 MAIN_DIR = dirname(dirname(argv[0]))
 SMAIN_DIR = MAIN_DIR + "/"

@@ -1,4 +1,5 @@
 import pygame
+from globals import DEBUGGING
 
 pygame.init()
 font = pygame.font.Font(None, 30)
@@ -11,6 +12,8 @@ def debug(info: str, x: int = 0, y: int = 0):
     - X (int): The x position for the information
     - Y (int): The Y position for the information"""
 
+    if not DEBUGGING:
+        return
     # Get screen
     screen = pygame.display.get_surface()
     text = str(info)

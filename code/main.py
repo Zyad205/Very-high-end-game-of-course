@@ -7,7 +7,6 @@ import pygame
 from debug import debug
 from globals import *
 from level import Level
-debugging = False
 
 
 class Main:
@@ -18,7 +17,7 @@ class Main:
 
         # Screen properties 
         
-        if debugging:
+        if DEBUGGING:
             flags = pygame.SCALED
         else:
             flags = pygame.FULLSCREEN | pygame.SCALED
@@ -35,6 +34,7 @@ class Main:
         self.clock = pygame.Clock()
         # Main loop
         self.main_loop()
+        
 
     def main_loop(self):
         while True:

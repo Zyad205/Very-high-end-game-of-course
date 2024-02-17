@@ -2,6 +2,7 @@ import pygame
 from globals import *
 from entities import *
 from pytmx.util_pygame import load_pygame
+from pytmx import TiledMap
 from obstacles import *
 
 class Level:
@@ -12,9 +13,9 @@ class Level:
         self.visible_sprites = CustomGroup()
         self.obstacle_sprites = pygame.sprite.Group()
 
+        self.player = Player([self.visible_sprites], self.obstacle_sprites, [0, 3000])
         self.setup_map(tmx_map)
         
-        self.player = Player([self.visible_sprites], self.obstacle_sprites, [0, self.width])
 
         self.background = pygame.image.load(SMAIN_DIR + "graphics/bg.png").convert()
         self.background = pygame.transform.scale(self.background, MAP_SIZE)
@@ -22,21 +23,26 @@ class Level:
         self.offset = 0
 
     def setup_map(self, tmx_map):
-        maps = load_pygame(tmx_map)
+        tmx_map = load_pygame(tmx_map)
         
-        self.width = maps.width * TILE_SIZE
+        self.width = tmx_map.width * TILE_SIZE
 
-        floor = maps.get_layer_by_name("shades")
+        floor = tmx_map.get_layer_by_name("shades")
         groups = [self.visible_sprites]
         for tile in floor.tiles():
-            Tile(groups, (tile[0] * TILE_SIZE, tile[1] * TILE_SIZE + 16), tile[2])
+            Tile(groups, (tile[0] * TILE_SIZE, tile[1] * TILE_SIZE + 16), tile[2], "shades")
             
-        floor = maps.get_layer_by_name("main")
+        floor = tmx_map.get_layer_by_name("main")
         groups = [self.visible_sprites, self.obstacle_sprites]
+        
+
         for tile in floor.tiles():
-            Tile(groups, (tile[0] * TILE_SIZE, tile[1] * TILE_SIZE + 16), tile[2])
+            Tile(groups, (tile[0] * TILE_SIZE, tile[1] * TILE_SIZE + 16), tile[2], "obstacle")
 
-
+        floor = tmx_map.get_layer_by_name("objects")
+    
+        # for obj in floor:               
+        #     Tile(groups, (obj.x, obj.y + 16), obj.image, "obstacles")
 
     def run(self, screen):
         self.screen.blit(self.background, (0,0))
@@ -72,3 +78,6 @@ class CustomGroup(pygame.sprite.Group):
             rect = sprite.rect.copy()
             rect.x -= offset
             screen.blit(sprite.image, rect)
+            # pygame.draw.rect(screen, "white", rect, 1)
+            # if sprite.type == "player":
+            #     pygame.draw.rect(screen, "red", rect, 2)
