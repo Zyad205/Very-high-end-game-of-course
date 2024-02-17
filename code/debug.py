@@ -16,7 +16,7 @@ def debug(info: str, x: int = 0, y: int = 0):
     text = str(info)
 
     rendered_text = font.render(text, color="WHITE", antialias=False)
-    rect = rendered_text.get_rect()
+    rect = rendered_text.get_rect(topleft=(x,y))
 
     pygame.draw.rect(screen, "BLACK", rect)
-    screen.blit(rendered_text, (x, y))
+    screen.blit(rendered_text, rect)

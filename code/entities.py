@@ -4,7 +4,7 @@ from globals import *
 from debug import debug
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, groups, obstacles):
+    def __init__(self, groups, obstacles, x_limits=MAP_SIZE):
 
         # The father init func
         super().__init__(groups)
@@ -18,7 +18,8 @@ class Player(pygame.sprite.Sprite):
         self.last_animation_update = False
 
         self.image = self.animation.image
-        self.rect = self.image.get_rect(midbottom=(400, 720))
+        self.rect = pygame.rect.Rect(0, 0, 42, 42)
+        self.rect.midbottom = (400, 720)
         
         self.obstacles = obstacles
 
@@ -27,13 +28,13 @@ class Player(pygame.sprite.Sprite):
 
         # Y axis
         self.jump = False
-        self.gravity = 2
+        self.gravity = 1
         self.y_speed = 0
-        self.jump_power = 30
+        self.jump_power = 21
         self.can_jump = True
         
         # World limits
-        self.X_LIMITS = [0, 1280]
+        self.X_LIMITS = x_limits
         self.Y_LIMIT = 720
 
     def update(self) -> None:
@@ -97,7 +98,7 @@ class Player(pygame.sprite.Sprite):
             if self.rect.right > self.X_LIMITS[1]:
                 self.rect.right = self.X_LIMITS[1]
 
-            elif self.rect.left < self.X_LIMITS[0]:
+            if self.rect.left < self.X_LIMITS[0]:
                 self.rect.left = self.X_LIMITS[0]
             
             # Obstacles
