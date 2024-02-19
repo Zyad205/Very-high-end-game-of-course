@@ -73,3 +73,47 @@ class Animation:
         """Reset the animation to the first animation"""
         self.image_index = 0
         self.image = self.images[0]
+
+class Effect(Animation):
+    def __init__(
+            self,
+            folder_path: str,
+            animation_speed: float,
+            img_multi: int = 1) -> None:
+        """It will control the animations by you calling the update function,
+        you provide the folder that has the images
+
+        Note:
+        - Retrieve current image by accessing the image attribute
+
+        Parameters:
+        - Folder_path (str): The folder the contains the animations
+        - Animation_speed (float): The speed to update the images
+        - Img_multi (int): A multiplier for the images size"""
+        super().__init__(folder_path, animation_speed, img_multi, 1)
+
+        self.screen = pygame.display.get_surface()
+
+        self.playing = False
+    def play(self):
+        """"""
+        if not self.playing:
+            # do shit
+            self.playing = True
+            self.reset()
+
+    def draw(self, pos, flip: bool = 0):
+        """Draw the particles
+        Parameters:
+        - Position (tuple[int]): The coordinates for the midbottom of the animation
+        - Flip (bool): The image or no"""
+        if self.playing:
+            rect = self.image.get_rect()
+            rect.midbottom = pos
+            img = pygame.transform.flip(self.image, flip, 0)
+            self.screen.blit(img, rect)
+            if self.update():
+                self.playing = False
+
+
+        

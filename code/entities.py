@@ -9,14 +9,20 @@ class Player(pygame.sprite.Sprite):
         # The father init func
         super().__init__(groups)
 
-        
-        self.animations = {"idle": Animation(PLAYER_PATHS[0], 0.06, PLAYER_IMG_MULTI),\
+        # Animations        
+        self.animations = {"idle": Animation(PLAYER_PATHS[0], 0.06, PLAYER_IMG_MULTI),
                            "run": Animation(PLAYER_PATHS[1], 0.15, PLAYER_IMG_MULTI),
-                           "land": Animation(PLAYER_PATHS[2], 0.34, PLAYER_IMG_MULTI, 1)}
+                           "land": Animation(PLAYER_PATHS[2], 0.15, PLAYER_IMG_MULTI, 1),
+                           "attack": Animation(PLAYER_PATHS[3], 0.2, PLAYER_IMG_MULTI, 1)}
         self.current_animation = "idle"
         self.animation = self.animations[self.current_animation]
         self.last_animation_update = False
 
+        # Effects
+        self.effect = Effect(PLAYER_PATHS[4], 0.2, PLAYER_EFFECTS_MULTI)
+        self.effect_two = Effect(PLAYER_PATHS[5], 0.3, PLAYER_EFFECTS_MULTI)
+
+        # Attributes
         self.image = self.animation.image
         self.rect = pygame.rect.Rect(0, 0, 42, 42)
         self.rect.midbottom = (400, 720)
@@ -46,6 +52,7 @@ class Player(pygame.sprite.Sprite):
         self.old_rect = self.rect
         self.input()
         
+        
         self.last_animation_update = self.animation.update()
     
     def input(self) -> None:
@@ -62,6 +69,9 @@ class Player(pygame.sprite.Sprite):
             input_vector.y = 1
 
         self.movement(input_vector)
+        if keys[pygame.K_l]:
+            self.attack()
+            
 
     def movement(self, vector):
         new_animation = ""
@@ -86,9 +96,14 @@ class Player(pygame.sprite.Sprite):
         if self.current_animation != "idle" and vector.x == 0:
             new_animation = "idle"
 
-        if self.current_animation == "land":
+        if self.current_animation == "attack":
             if new_animation and self.last_animation_update:
                 self.change_animation(new_animation)
+
+        elif self.current_animation == "land":
+            if new_animation and self.last_animation_update:
+                self.change_animation(new_animation)
+    
         elif new_animation:
                 self.change_animation(new_animation)
 
@@ -134,10 +149,14 @@ class Player(pygame.sprite.Sprite):
             if landed:
                 if not self.can_jump and self.y_speed > 15:
                     self.change_animation("land")
+                    self.effect.play()
                 self.y_speed = 0
 
                 self.can_jump = True            
                 
+    def attack(self):
+        self.change_animation("attack")
+        self.effect_two.play()
 
     def change_animation(self, new_animation: str):
         """Changes the current animation
