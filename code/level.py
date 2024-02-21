@@ -34,27 +34,32 @@ class Level:
         
         self.width = tmx_map.width * TILE_SIZE
 
+        # For the background textures
         floor = tmx_map.get_layer_by_name("bg_tex")
         groups = [self.visible_sprites]
+        # Iterating through them
         for tile in floor.tiles():
             Tile(groups, (tile[0] * TILE_SIZE, tile[1] * TILE_SIZE + 16), tile[2], "shades")
 
+        # Creating the player
         self.player = Player([self.visible_sprites], self.obstacle_sprites, [0, 3000])
-            
+        
+        # For the foreground textures
         floor = tmx_map.get_layer_by_name("fg_tex")
+        # Iterating through them
         for tile in floor.tiles():
             Tile(groups, (tile[0] * TILE_SIZE, tile[1] * TILE_SIZE + 16), tile[2], "shades")
 
-
+        # For the obstacles
         floor = tmx_map.get_layer_by_name("main")
         groups = [self.visible_sprites, self.obstacle_sprites]
-        
-
+        # Iterating through them
         for tile in floor.tiles():
             Tile(groups, (tile[0] * TILE_SIZE, tile[1] * TILE_SIZE + 16), tile[2], "obstacle")
-
+        
+        # Objectssssssssss
         floor = tmx_map.get_layer_by_name("objects")
-    
+        # Drawing them
         for obj in floor:
             Tile(groups, (obj.x, obj.y + 16 - obj.height), obj.image, "obstacles")
 
