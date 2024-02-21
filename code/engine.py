@@ -74,6 +74,49 @@ class Animation:
         self.image_index = 0
         self.image = self.images[0]
 
+class AnimationController:
+    def __init__(
+            self,
+            animations: dict[str, Animation],
+            play_once_names: list[str],
+            first_animation: str):
+        self.animations = animations
+        self.play_once_names = play_once_names
+        self.current_animation = first_animation
+        self.animation = animations[first_animation]
+        self.play_animation(first_animation)
+
+        self.animation_ended = False
+
+        self.image = self.animation.image
+
+
+    def play_animation(self, animation: str, override: bool = False) -> None:
+        if self.current_animation == animation:
+            return False
+        
+        if self.current_animation in self.play_once_names:
+            if self.animation_ended or override:
+                self.change_animation(animation)
+                return True
+        else:
+            self.change_animation(animation)
+            return True
+                                      
+
+    def change_animation(self, new_animation: str):
+        """Changes the current animation
+        Parameters:
+        - New_animation (str): The name of the new animation"""
+        
+        self.animation.reset()
+        self.animation = self.animations[new_animation]
+        self.current_animation = new_animation
+
+    def update(self):
+        self.animation_ended = self.animation.update()
+        self.image = self.animation.image
+
 class Effect(Animation):
     def __init__(
             self,
@@ -109,11 +152,51 @@ class Effect(Animation):
         - Flip (bool): The image or no"""
         if self.playing:
             rect = self.image.get_rect()
+
             rect.midbottom = pos
             img = pygame.transform.flip(self.image, flip, 0)
+            
             self.screen.blit(img, rect)
+
             if self.update():
                 self.playing = False
 
 
-        
+
+
+# Code author clear code
+# Youtube https://www.youtube.com/@ClearCode
+# Github https://github.com/clear-code-projects
+# Project code taken from https://github.com/clear-code-projects/Super-Pirate-World
+# If anybody reading this if you have money give some to this guy
+# he deserves it
+class Timer:
+    def __init__(self, duration: int, func= None, repeat: bool = False):
+        """The init func
+        Parameters:
+        - Duration (int): The duration in ms
+        - Func (function): A function to be called when the timer finishes
+        - Repeat (bool): Should the timer reactive after it finishes"""
+        self.duration = duration
+        self.func = func
+        self.start_time = 0
+        self.active = False
+        self.repeat = repeat
+
+    def activate(self):
+        self.active = True
+        self.start_time = pygame.time.get_ticks()
+
+    def deactivate(self):
+        self.active = False
+        self.start_time = 0
+        if self.repeat:
+            self.activate()
+
+    def update(self):
+        current_time = pygame.time.get_ticks()
+        if current_time - self.start_time >= self.duration:
+            if self.func and self.start_time != 0:
+                self.func()
+            self.deactivate() 
+

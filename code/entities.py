@@ -13,14 +13,20 @@ class Player(pygame.sprite.Sprite):
         self.animations = {"idle": Animation(PLAYER_PATHS[0], 0.06, PLAYER_IMG_MULTI),
                            "run": Animation(PLAYER_PATHS[1], 0.15, PLAYER_IMG_MULTI),
                            "land": Animation(PLAYER_PATHS[2], 0.15, PLAYER_IMG_MULTI, 1),
-                           "attack": Animation(PLAYER_PATHS[3], 0.2, PLAYER_IMG_MULTI, 1)}
+                           "attack": Animation(PLAYER_PATHS[3], 0.2, PLAYER_IMG_MULTI, 1),
+                           "s_attack": Animation(PLAYER_PATHS[4], 0.15, PLAYER_IMG_MULTI, 1)}
+        
+        self.animation_controller = AnimationController(self.animations, ["land", "attack", "s_attack"], "idle")
+
         self.current_animation = "idle"
         self.animation = self.animations[self.current_animation]
         self.last_animation_update = False
 
         # Effects
-        self.effect = Effect(PLAYER_PATHS[4], 0.2, PLAYER_EFFECTS_MULTI)
-        self.effect_two = Effect(PLAYER_PATHS[5], 0.3, PLAYER_EFFECTS_MULTI)
+        self.effects = {"land": Effect(PLAYER_PATHS[5], 0.2, PLAYER_EFFECTS_MULTI),
+                        "attack": Effect(PLAYER_PATHS[6], 0.3, PLAYER_EFFECTS_MULTI)}
+
+        self.active_effects = []
 
         # Attributes
         self.image = self.animation.image
@@ -44,17 +50,28 @@ class Player(pygame.sprite.Sprite):
         self.X_LIMITS = x_limits
         self.Y_LIMIT = 720
 
+        # Timers
+        self.timers = {
+            "attack": Timer(700),
+            "s_attack": Timer(3000)
+        }
+    
+    def update_timers(self):
+        for timer in self.timers.values():
+            timer.update()
+
+
     def update(self) -> None:
+        self.animation_controller.update()
         self.image = pygame.transform.flip(
-            self.animation.image,
+            self.animation_controller.image,
             flip_x=self.direction,
             flip_y=False)
+        
+        self.update_timers()
         self.old_rect = self.rect
         self.input()
-        
-        
-        self.last_animation_update = self.animation.update()
-    
+            
     def input(self) -> None:
 
         keys = pygame.key.get_pressed()
@@ -71,8 +88,9 @@ class Player(pygame.sprite.Sprite):
         self.movement(input_vector)
         if keys[pygame.K_l]:
             self.attack()
+        if keys[pygame.K_j]:
+            self.s_attack()
             
-
     def movement(self, vector):
         new_animation = ""
         if vector.x != 0:
@@ -82,8 +100,9 @@ class Player(pygame.sprite.Sprite):
             else:
                 self.direction = 1
 
-            if self.current_animation != "run":
-                new_animation = "run"
+            self.animation_controller.play_animation("run")
+        else:
+            self.animation_controller.play_animation("idle")
         self.collisions("horizontal")
         if vector.y != 0 and self.can_jump:
             self.can_jump = False
@@ -93,20 +112,6 @@ class Player(pygame.sprite.Sprite):
         self.rect.y += self.y_speed
         self.collisions("vertical")
             
-        if self.current_animation != "idle" and vector.x == 0:
-            new_animation = "idle"
-
-        if self.current_animation == "attack":
-            if new_animation and self.last_animation_update:
-                self.change_animation(new_animation)
-
-        elif self.current_animation == "land":
-            if new_animation and self.last_animation_update:
-                self.change_animation(new_animation)
-    
-        elif new_animation:
-                self.change_animation(new_animation)
-
     def collisions(self, dir: str):
         """Checks for collisions"""
     
@@ -147,21 +152,65 @@ class Player(pygame.sprite.Sprite):
                     self.y_speed = 0
 
             if landed:
-                if not self.can_jump and self.y_speed > 15:
-                    self.change_animation("land")
-                    self.effect.play()
+                if not self.can_jump and self.y_speed > 30:
+                    if self.animation_controller.play_animation("land"):
+                        self.play_effect("land")
+
                 self.y_speed = 0
 
                 self.can_jump = True            
                 
     def attack(self):
-        self.change_animation("attack")
-        self.effect_two.play()
+        if not self.timers["attack"].active:
+            self.animation_controller.play_animation("attack", True)
+            self.play_effect("attack")
+            self.timers["attack"].activate()
+
+    def s_attack(self):
+        if not self.timers["s_attack"].active:
+            self.animation_controller.play_animation("s_attack", True)
+            self.play_effect("attack")
+            self.timers["s_attack"].activate()
+
+    def play_effect(self, effect: str):
+        """Plays an effect
+        Parameters:
+        - Effect (str): The name of the effect in the effects dict"""
+        if not effect in self.active_effects:
+            self.active_effects.append(effect)
+            self.effects[effect].play()
+
+    def draw_effects(self, x_offset: int):
+        """Draws all active effects
+        Parameters:
+        - X_offset (int): The x_offset for the map drawing"""
+        for effect in self.active_effects:
+            the_effect = self.effects[effect]
+            rect = self.rect.copy()
+            rect.x -= x_offset
+
+            if effect == "land":
+                the_effect.draw(rect.midbottom)
+
+            elif effect == "attack":
+
+                if self.direction:
+                    pos = rect.midleft
+                else:
+                    pos = rect.midright
+                pos = [*pos]
+                pos[1] += 10
+                the_effect.draw(pos, self.direction)
+
+            if not the_effect.playing:
+                self.active_effects.remove(effect)
+
 
     def change_animation(self, new_animation: str):
         """Changes the current animation
         Parameters:
         - New_animation (str): The name of the new animation"""
+        
         
         self.animation.reset()
         self.animation = self.animations[new_animation]

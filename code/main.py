@@ -1,7 +1,6 @@
-# Arts used by https://penusbmic.itch.io/sci-fi-character-pack-12
 # Arts used by https://0x72.itch.io/16x16-industrial-tileset
 # Background used by https://free-game-assets.itch.io/free-city-backgrounds-pixel-art
-
+# https://styloo.itch.io/pixel-grass-and-flowers
 
 import pygame
 from debug import debug
@@ -46,6 +45,7 @@ class Main:
                     if event.key == pygame.K_q:
                         pygame.quit()
                         exit("User closed")
+                
 
             self.level.run(self.screen)
             pygame.display.flip()

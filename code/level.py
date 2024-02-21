@@ -10,7 +10,7 @@ class Level:
 
         self.screen = pygame.display.get_surface()
         # Groups
-        self.visible_sprites = CustomGroup()
+        self.visible_sprites = VisibleSprites()
         self.obstacle_sprites = pygame.sprite.Group()
 
         self.setup_map(tmx_map)
@@ -47,8 +47,9 @@ class Level:
 
         floor = tmx_map.get_layer_by_name("objects")
     
-        # for obj in floor:               
-        #     Tile(groups, (obj.x, obj.y + 16), obj.image, "obstacles")
+        for obj in floor:
+            print(obj.properties)
+            Tile(groups, (obj.x, obj.y + 16 - obj.height), obj.image, "obstacles")
 
     def run(self, screen):
         self.screen.blit(self.background, (0,0))
@@ -71,15 +72,15 @@ class Level:
             self.offset = x - half_the_map
 
 
-        self.visible_sprites.custom_draw(screen, self.offset)
+        self.visible_sprites.draw(screen, self.offset)
         
 
-class CustomGroup(pygame.sprite.Group):
+class VisibleSprites(pygame.sprite.Group):
     def __init__(self):
         super().__init__()
         
 
-    def custom_draw(self, screen, offset):
+    def draw(self, screen, offset):
         for sprite in self.sprites():
             if sprite.type == "player":
                 width = sprite.image.get_width()
@@ -89,15 +90,7 @@ class CustomGroup(pygame.sprite.Group):
                 rect = sprite.rect.copy()
                 rect.x -= offset
                 screen.blit(sprite.image, (rect.x + width, rect.y))
-                
-                sprite.effect.draw(rect.midbottom)
-                if sprite.direction:
-                    pos = rect.midleft
-                else:
-                    pos = rect.midright
-                pos = [*pos]
-                pos[1] += 10
-                sprite.effect_two.draw(pos, sprite.direction)
+                sprite.draw_effects(offset)                
             else:
                 rect = sprite.rect.copy()
                 rect.x -= offset
