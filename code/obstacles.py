@@ -5,6 +5,7 @@ from globals import TILE_SIZE
 class Tile(pygame.sprite.Sprite):
     def __init__(self, groups: list, pos: tuple, surf: pygame.Surface, type):
         """The init func
+        
         Parameters:
         - Groups (list): The pygame sprite groups to be added in
         - Pos (tuple[int]): The position of the up left corner of the line

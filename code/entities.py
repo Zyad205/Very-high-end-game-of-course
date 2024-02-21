@@ -57,11 +57,14 @@ class Player(pygame.sprite.Sprite):
         }
     
     def update_timers(self):
+        """Updates all timers"""
+
         for timer in self.timers.values():
             timer.update()
 
 
     def update(self) -> None:
+        """Yes"""
         self.animation_controller.update()
         self.image = pygame.transform.flip(
             self.animation_controller.image,
@@ -73,6 +76,7 @@ class Player(pygame.sprite.Sprite):
         self.input()
             
     def input(self) -> None:
+        """Checks for all player related input"""
 
         keys = pygame.key.get_pressed()
         
@@ -90,9 +94,12 @@ class Player(pygame.sprite.Sprite):
             self.attack()
         if keys[pygame.K_j]:
             self.s_attack()
-            
-    def movement(self, vector):
-        new_animation = ""
+
+    def movement(self, vector: pygame.math.Vector2):
+        """Moves the player according to the the input_vector
+
+        Parameters:
+        - Vector (pygame.math.Vector2): The vector taken from input"""
         if vector.x != 0:
             self.rect.x += vector.x * 5
             if vector.x > 0:
@@ -104,6 +111,7 @@ class Player(pygame.sprite.Sprite):
         else:
             self.animation_controller.play_animation("idle")
         self.collisions("horizontal")
+
         if vector.y != 0 and self.can_jump:
             self.can_jump = False
             self.y_speed -= self.jump_power
@@ -112,14 +120,18 @@ class Player(pygame.sprite.Sprite):
         self.rect.y += self.y_speed
         self.collisions("vertical")
             
-    def collisions(self, dir: str):
-        """Checks for collisions"""
+    def collisions(self, direction: str):
+        """Checks for collisions
+
+        Parameters:
+        - Direction (str): The axis which to check for collision in"""
     
-        if dir == "horizontal":
+        if direction == "horizontal":
             # World borders first
+            # Right
             if self.rect.right > self.X_LIMITS[1]:
                 self.rect.right = self.X_LIMITS[1]
-
+            # Left
             if self.rect.left < self.X_LIMITS[0]:
                 self.rect.left = self.X_LIMITS[0]
             
@@ -129,51 +141,57 @@ class Player(pygame.sprite.Sprite):
                 sprite = sprite[0]
             else:
                 return
-            if self.direction:
+            if self.direction: # Going right
                 self.rect.left = sprite.rect.right
-            else:
+            else: # Going left
                 self.rect.right = sprite.rect.left
 
-        elif dir == "vertical":
-            # World borders first
+        elif direction == "vertical":
             landed = False
+            
+            # Main land
             if self.rect.bottom > self.Y_LIMIT:
                 self.rect.bottom = self.Y_LIMIT
                 landed = True
 
+            # Collisions with platforms
             sprite = pygame.sprite.spritecollide(self, self.obstacles, False)
-            if len(sprite) > 0:
+            if len(sprite) > 0: # Makes sure a collision was made
                 sprite = sprite[0]
-                if self.y_speed > 0:
+
+                if self.y_speed > 0: # Falling
                     self.rect.bottom = sprite.rect.top
                     landed = True
-                else:
+                else: # Jumping
                     self.rect.top = sprite.rect.bottom
                     self.y_speed = 0
 
-            if landed:
+            if landed: # Landing effects
                 if not self.can_jump and self.y_speed > 30:
+                    # Effects
                     if self.animation_controller.play_animation("land"):
                         self.play_effect("land")
-
+                # Attributes
                 self.y_speed = 0
-
                 self.can_jump = True            
                 
     def attack(self):
+        """Attacks"""
         if not self.timers["attack"].active:
             self.animation_controller.play_animation("attack", True)
             self.play_effect("attack")
             self.timers["attack"].activate()
 
     def s_attack(self):
+        """Uses the s attack"""
         if not self.timers["s_attack"].active:
             self.animation_controller.play_animation("s_attack", True)
             self.play_effect("attack")
             self.timers["s_attack"].activate()
 
     def play_effect(self, effect: str):
-        """Plays an effect
+        """Plays an effect if it's not playing
+
         Parameters:
         - Effect (str): The name of the effect in the effects dict"""
         if not effect in self.active_effects:
@@ -182,8 +200,9 @@ class Player(pygame.sprite.Sprite):
 
     def draw_effects(self, x_offset: int):
         """Draws all active effects
+
         Parameters:
-        - X_offset (int): The x_offset for the map drawing"""
+        - X_offset (int): The x_offset from the map drawing"""
         for effect in self.active_effects:
             the_effect = self.effects[effect]
             rect = self.rect.copy()
@@ -198,20 +217,11 @@ class Player(pygame.sprite.Sprite):
                     pos = rect.midleft
                 else:
                     pos = rect.midright
-                pos = [*pos]
+
+                pos = [*pos] # Unpacks the tuple into a list
                 pos[1] += 10
                 the_effect.draw(pos, self.direction)
 
+            # Clears the finished effects
             if not the_effect.playing:
                 self.active_effects.remove(effect)
-
-
-    def change_animation(self, new_animation: str):
-        """Changes the current animation
-        Parameters:
-        - New_animation (str): The name of the new animation"""
-        
-        
-        self.animation.reset()
-        self.animation = self.animations[new_animation]
-        self.current_animation = new_animation

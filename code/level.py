@@ -6,7 +6,11 @@ from pytmx import TiledMap
 from obstacles import *
 
 class Level:
-    def __init__(self, tmx_map):
+    def __init__(self, tmx_map: str):
+        """The init func
+
+        Parameters:
+        - Tmx_map (str): The path for the map"""
 
         self.screen = pygame.display.get_surface()
         # Groups
@@ -22,6 +26,10 @@ class Level:
         self.offset = 0
 
     def setup_map(self, tmx_map):
+        """Loads the tmx map
+        
+        Parameters:
+        - Tmx_map (str): The path for the map"""
         tmx_map = load_pygame(tmx_map)
         
         self.width = tmx_map.width * TILE_SIZE
@@ -51,7 +59,11 @@ class Level:
             print(obj.properties)
             Tile(groups, (obj.x, obj.y + 16 - obj.height), obj.image, "obstacles")
 
-    def run(self, screen):
+    def run(self, screen: pygame.Surface):
+        """Called to updates the whole level
+        
+        Parameters:
+        - Screen (pygame.Surface): The main display"""
         self.screen.blit(self.background, (0,0))
 
         self.visible_sprites.update()
@@ -80,7 +92,12 @@ class VisibleSprites(pygame.sprite.Group):
         super().__init__()
         
 
-    def draw(self, screen, offset):
+    def draw(self, screen: pygame.Surface, offset: int):
+        """Draws the whole map and player effects and calculates the x offset
+        
+        Parameters:
+        - Screen (pygame.Surface): The main display
+        - Offset (int): The x_offset for the map drawing"""
         for sprite in self.sprites():
             if sprite.type == "player":
                 width = sprite.image.get_width()

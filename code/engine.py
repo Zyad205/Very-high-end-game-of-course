@@ -80,6 +80,15 @@ class AnimationController:
             animations: dict[str, Animation],
             play_once_names: list[str],
             first_animation: str):
+        """The init func
+        
+        Parameters:
+        - Animations (dict[str, Animation]): A dictionary of animations objects
+        - Play_once_names (list[str]): A list of the names of the animations that
+        will play once
+        -First_animation (str): The name of the first loaded animation"""
+
+
         self.animations = animations
         self.play_once_names = play_once_names
         self.current_animation = first_animation
@@ -92,6 +101,13 @@ class AnimationController:
 
 
     def play_animation(self, animation: str, override: bool = False) -> None:
+        """Plays a new animation if it's not currently playing and no play
+        once animation is playing
+
+        Parameters:
+        - Animation (str): The name of the new animation
+        - Override (bool): Should override a currently playing play once
+        animation"""
         if self.current_animation == animation:
             return False
         
@@ -114,6 +130,8 @@ class AnimationController:
         self.current_animation = new_animation
 
     def update(self):
+        """Updates the current animation and the image attribute"""
+
         self.animation_ended = self.animation.update()
         self.image = self.animation.image
 
@@ -123,23 +141,22 @@ class Effect(Animation):
             folder_path: str,
             animation_speed: float,
             img_multi: int = 1) -> None:
-        """It will control the animations by you calling the update function,
-        you provide the folder that has the images
-
-        Note:
-        - Retrieve current image by accessing the image attribute
+        """The init func
 
         Parameters:
         - Folder_path (str): The folder the contains the animations
         - Animation_speed (float): The speed to update the images
         - Img_multi (int): A multiplier for the images size"""
+
         super().__init__(folder_path, animation_speed, img_multi, 1)
 
         self.screen = pygame.display.get_surface()
 
         self.playing = False
+
     def play(self):
-        """"""
+        """Starts playing the effect if it's not currently playing"""
+
         if not self.playing:
             # do shit
             self.playing = True
@@ -147,9 +164,11 @@ class Effect(Animation):
 
     def draw(self, pos, flip: bool = 0):
         """Draw the particles
+
         Parameters:
         - Position (tuple[int]): The coordinates for the midbottom of the animation
-        - Flip (bool): The image or no"""
+        - Flip (bool): Flip the image on x axis or not"""
+
         if self.playing:
             rect = self.image.get_rect()
 
@@ -162,8 +181,6 @@ class Effect(Animation):
                 self.playing = False
 
 
-
-
 # Code author clear code
 # Youtube https://www.youtube.com/@ClearCode
 # Github https://github.com/clear-code-projects
@@ -173,10 +190,12 @@ class Effect(Animation):
 class Timer:
     def __init__(self, duration: int, func= None, repeat: bool = False):
         """The init func
+
         Parameters:
         - Duration (int): The duration in ms
         - Func (function): A function to be called when the timer finishes
         - Repeat (bool): Should the timer reactive after it finishes"""
+
         self.duration = duration
         self.func = func
         self.start_time = 0
@@ -184,19 +203,25 @@ class Timer:
         self.repeat = repeat
 
     def activate(self):
+        """Start the timer and resets it"""
         self.active = True
         self.start_time = pygame.time.get_ticks()
 
     def deactivate(self):
+        """Stops the timer"""
+
         self.active = False
         self.start_time = 0
         if self.repeat:
             self.activate()
 
     def update(self):
+        """Updates the timer and checks if the timer has ended"""
+
         current_time = pygame.time.get_ticks()
         if current_time - self.start_time >= self.duration:
             if self.func and self.start_time != 0:
                 self.func()
+
             self.deactivate() 
 
