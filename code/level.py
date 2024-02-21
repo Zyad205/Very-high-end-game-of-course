@@ -56,7 +56,6 @@ class Level:
         floor = tmx_map.get_layer_by_name("objects")
     
         for obj in floor:
-            print(obj.properties)
             Tile(groups, (obj.x, obj.y + 16 - obj.height), obj.image, "obstacles")
 
     def run(self, screen: pygame.Surface):
@@ -112,5 +111,7 @@ class VisibleSprites(pygame.sprite.Group):
                 rect = sprite.rect.copy()
                 rect.x -= offset
                 screen.blit(sprite.image, rect)
+                if sprite.type != "shades":
+                    pygame.draw.rect(screen, "red", rect, 1)
 
-            # pygame.draw.rect(screen, "white", rect, 1)
+
