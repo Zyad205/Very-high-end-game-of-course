@@ -4,7 +4,7 @@ from globals import *
 from debug import debug
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, groups, obstacles, x_limits=MAP_SIZE):
+    def __init__(self, groups, obstacles, semi_obstacles, x_limits=MAP_SIZE):
 
         # The father init func
         super().__init__(groups)
@@ -18,10 +18,6 @@ class Player(pygame.sprite.Sprite):
         
         self.animation_controller = AnimationController(self.animations, ["land", "attack", "s_attack"], "idle")
 
-        self.current_animation = "idle"
-        self.animation = self.animations[self.current_animation]
-        self.last_animation_update = False
-
         # Effects
         self.effects = {"land": Effect(PLAYER_PATHS[5], 0.2, PLAYER_EFFECTS_MULTI),
                         "attack": Effect(PLAYER_PATHS[6], 0.3, PLAYER_EFFECTS_MULTI)}
@@ -29,11 +25,11 @@ class Player(pygame.sprite.Sprite):
         self.active_effects = []
 
         # Attributes
-        self.image = self.animation.image
         self.rect = pygame.rect.Rect(0, 0, 42, 42)
         self.rect.midbottom = (400, 720)
         
         self.obstacles = obstacles
+        self.semi_obstacles = semi_obstacles
 
          # 1 - Left, 0 - Right
         self.direction = 0
@@ -71,8 +67,9 @@ class Player(pygame.sprite.Sprite):
             flip_x=self.direction,
             flip_y=False)
         
+        self.old_rect = self.rect.copy()
+
         self.update_timers()
-        self.old_rect = self.rect
         self.input()
             
     def input(self) -> None:
@@ -119,6 +116,7 @@ class Player(pygame.sprite.Sprite):
         self.y_speed += self.gravity
         self.rect.y += self.y_speed
         self.collisions("vertical")
+        self.semi_collision()
             
     def collisions(self, direction: str):
         """Checks for collisions
@@ -174,7 +172,39 @@ class Player(pygame.sprite.Sprite):
                 # Attributes
                 self.y_speed = 0
                 self.can_jump = True            
-                
+    
+    def semi_collision(self):
+        """Checks for collisions
+
+        Parameters:
+        - Direction (str): The axis which to check for collision in"""
+    
+        landed = False
+        
+        # Main land
+        if self.rect.bottom > self.Y_LIMIT:
+            self.rect.bottom = self.Y_LIMIT
+            landed = True
+
+        # Collisions with platforms
+        sprite = pygame.sprite.spritecollide(self, self.semi_obstacles, False)
+        if len(sprite) > 0: # Makes sure a collision was made
+            sprite = sprite[0]
+
+            if self.y_speed > 0: # Falling
+                if self.old_rect.bottom <= sprite.rect.top:
+                    self.rect.bottom = sprite.rect.top
+                    landed = True
+
+        if landed: # Landing effects
+            if not self.can_jump and self.y_speed > 30:
+                # Effects
+                if self.animation_controller.play_animation("land"):
+                    self.play_effect("land")
+            # Attributes
+            self.y_speed = 0
+            self.can_jump = True            
+
     def attack(self):
         """Attacks"""
         if not self.timers["attack"].active:

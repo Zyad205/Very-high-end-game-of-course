@@ -3,7 +3,7 @@ from globals import TILE_SIZE
 
 
 class Tile(pygame.sprite.Sprite):
-    def __init__(self, groups: list, pos: tuple, surf: pygame.Surface, type):
+    def __init__(self, groups: list, pos: tuple, surf: pygame.Surface, type: str):
         """The init func
         
         Parameters:
@@ -18,6 +18,15 @@ class Tile(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.type = type
 
+class SemiCollidablePlatform(Tile):
+    def __init__(
+            self,
+            groups: list,
+            pos: tuple,
+            surf: pygame.Surface,
+            type: str):
+        
+        super().__init__(groups, pos, surf, type)
 
 
 

@@ -16,13 +16,17 @@ class Level:
         # Groups
         self.visible_sprites = VisibleSprites()
         self.obstacle_sprites = pygame.sprite.Group()
-
+        self.semi_obstacles_sprites = pygame.sprite.Group()
+        
+        
+        # Setting up the map
         self.setup_map(tmx_map)
         
-
+        # The main background
         self.background = pygame.image.load(SMAIN_DIR + "graphics/bg.png").convert()
         self.background = pygame.transform.scale(self.background, MAP_SIZE)
 
+        # The x_offset for the map drawing
         self.offset = 0
 
     def setup_map(self, tmx_map):
@@ -42,7 +46,11 @@ class Level:
             Tile(groups, (tile[0] * TILE_SIZE, tile[1] * TILE_SIZE + 16), tile[2], "shades")
 
         # Creating the player
-        self.player = Player([self.visible_sprites], self.obstacle_sprites, [0, 3000])
+        self.player = Player(
+            [self.visible_sprites],
+            self.obstacle_sprites,
+            self.semi_obstacles_sprites,
+            [0, 3000])
         
         # For the foreground textures
         floor = tmx_map.get_layer_by_name("fg_tex")
@@ -59,9 +67,10 @@ class Level:
         
         # Objectssssssssss
         floor = tmx_map.get_layer_by_name("objects")
+        groups = [self.visible_sprites, self.semi_obstacles_sprites]
         # Drawing them
         for obj in floor:
-            Tile(groups, (obj.x, obj.y + 16 - obj.height), obj.image, "obstacles")
+            SemiCollidablePlatform(groups, (obj.x, obj.y + 16 - obj.height), obj.image, "semi_obstacles")
 
     def run(self, screen: pygame.Surface):
         """Called to updates the whole level
@@ -71,6 +80,7 @@ class Level:
         self.screen.blit(self.background, (0,0))
 
         self.visible_sprites.update()
+        self.semi_obstacles_sprites.update()
 
         # Camera 1
         # x = self.player.rect.centerx - self.offset
@@ -112,6 +122,7 @@ class VisibleSprites(pygame.sprite.Group):
                 rect.x -= offset
                 screen.blit(sprite.image, (rect.x + width, rect.y))
                 sprite.draw_effects(offset)                
+                pygame.draw.rect(screen, "yellow", rect, 2)
             else:
                 rect = sprite.rect.copy()
                 rect.x -= offset
