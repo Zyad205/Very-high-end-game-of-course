@@ -70,7 +70,7 @@ class Level:
         groups = [self.visible_sprites, self.semi_obstacles_sprites]
         # Drawing them
         for obj in floor:
-            SemiCollidablePlatform(groups, (obj.x, obj.y + 16 - obj.height), obj.image, "semi_obstacles")
+            SemiCollidablePlatform(groups, (obj.x, obj.y + 16 - obj.height), obj.image, "semi_obstacles", 300)
 
     def run(self, screen: pygame.Surface):
         """Called to updates the whole level
@@ -122,12 +122,12 @@ class VisibleSprites(pygame.sprite.Group):
                 rect.x -= offset
                 screen.blit(sprite.image, (rect.x + width, rect.y))
                 sprite.draw_effects(offset)                
-                pygame.draw.rect(screen, "yellow", rect, 2)
+                # pygame.draw.rect(screen, "yellow", rect, 2)
             else:
                 rect = sprite.rect.copy()
                 rect.x -= offset
                 screen.blit(sprite.image, rect)
-                if sprite.type != "shades":
-                    pygame.draw.rect(screen, "red", rect, 1)
+                # if sprite.type != "shades":
+                #     pygame.draw.rect(screen, "red", rect, 1)
 
 
