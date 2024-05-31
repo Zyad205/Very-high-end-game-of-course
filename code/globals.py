@@ -7,16 +7,21 @@ DEBUGGING = 0
 MAIN_DIR = dirname(dirname(argv[0]))
 SMAIN_DIR = MAIN_DIR + "/"
 
-PLAYER_PATHS = [SMAIN_DIR + "graphics/player/images/idle",
-                SMAIN_DIR + "graphics/player/images/run",
-                SMAIN_DIR + "graphics/player/images/land",
-                SMAIN_DIR + "graphics/player/images/attack",
-                SMAIN_DIR + "graphics/player/images/s_attack",
-                SMAIN_DIR + "graphics/player/effects/land",
-                SMAIN_DIR + "graphics/player/effects/attack"]
+PLAYER_PATHS = {
+    "idle": SMAIN_DIR + "graphics/player/images/idle",
+    "run": SMAIN_DIR + "graphics/player/images/run",
+    "land": SMAIN_DIR + "graphics/player/images/land",
+    "attack": SMAIN_DIR + "graphics/player/images/attack",
+    "s_attack": SMAIN_DIR + "graphics/player/images/s_attack",
+    "effect_land": SMAIN_DIR + "graphics/player/effects/land",
+    "effect_attack": SMAIN_DIR + "graphics/player/effects/attack"}
+
+WITCHCRAFT_PATHS = {
+    "idle": SMAIN_DIR + "graphics/enemies/witchcraft/idle"
+}
 
 MAPS_PATHS = [SMAIN_DIR + "maps/main.tmx"]
-
+BG_PATH = SMAIN_DIR + "graphics/bg.png"
 # PLAYER
 PLAYER_IMG_MULTI = 3
 PLAYER_EFFECTS_MULTI = 4

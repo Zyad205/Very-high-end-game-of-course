@@ -25,28 +25,43 @@ class SemiCollidablePlatform(Tile):
             pos: tuple,
             surf: pygame.Surface,
             type: str,
-            x_movement: int = 0):
+            x_movement: int = 0,
+            speed: int = 1):
         
         super().__init__(groups, pos, surf, type)
         
+
         self.x_movement = x_movement
+
         self.starting_x = pos[0]
         self.ending_x = pos[0] + x_movement
-        self.direction = 1 # 1 right, 0 left
+
+        self.direction = 1 # 1 right, 0 left\
+
+        self.speed = speed
+
+        self.x = self.rect.x
 
     def update(self):
         if not self.x_movement:
             return
+        
         if self.direction:
-            self.rect.centerx += 1
-            if self.rect.centerx > self.ending_x:
+            self.x += self.speed
+            self.rect.x = self.x
+
+            if self.rect.x > self.ending_x:
                 self.direction = 0
-                self.rect.centerx = self.ending_x
+                self.rect.x = self.ending_x
+                self.x = self.rect.x
         else:
-            self.rect.centerx -= 1
-            if self.rect.centerx < self.starting_x:
+            self.x -= self.speed
+            self.rect.x = self.x
+
+            if self.rect.x < self.starting_x:
                 self.direction = 1
-                self.rect.centerx = self.starting_x
+                self.rect.x = self.starting_x
+                self.x = self.rect.x
 
         
         

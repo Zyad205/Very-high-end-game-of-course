@@ -1,16 +1,18 @@
 import pygame
 from globals import *
-from entities import *
+from player import *
 from pytmx.util_pygame import load_pygame
 from pytmx import TiledMap
 from obstacles import *
-
+from entities import *
+from random import randint
 class Level:
-    def __init__(self, tmx_map: str):
+    def __init__(self, tmx_map: str, bg_path: str):
         """The init func
 
         Parameters:
-        - Tmx_map (str): The path for the map"""
+        - Tmx_map (str): The path for the map
+        - Bg_path (str): The path for the background image"""
 
         self.screen = pygame.display.get_surface()
         # Groups
@@ -23,7 +25,7 @@ class Level:
         self.setup_map(tmx_map)
         
         # The main background
-        self.background = pygame.image.load(SMAIN_DIR + "graphics/bg.png").convert()
+        self.background = pygame.image.load(bg_path).convert()
         self.background = pygame.transform.scale(self.background, MAP_SIZE)
 
         # The x_offset for the map drawing
@@ -45,6 +47,20 @@ class Level:
         for tile in floor.tiles():
             Tile(groups, (tile[0] * TILE_SIZE, tile[1] * TILE_SIZE + 16), tile[2], "shades")
 
+
+        # Objectssssssssss
+        floor = tmx_map.get_layer_by_name("objects")
+        groups = [self.visible_sprites, self.semi_obstacles_sprites]
+        # Drawing them
+        for obj in floor:
+            SemiCollidablePlatform(
+                groups,
+                (obj.x, obj.y + 16 - obj.height),
+                obj.image,
+                "semi_obstacles",
+                300,
+                randint(400, 1000) / 500)
+
         # Creating the player
         self.player = Player(
             [self.visible_sprites],
@@ -54,6 +70,7 @@ class Level:
         
         # For the foreground textures
         floor = tmx_map.get_layer_by_name("fg_tex")
+        groups = [self.visible_sprites]
         # Iterating through them
         for tile in floor.tiles():
             Tile(groups, (tile[0] * TILE_SIZE, tile[1] * TILE_SIZE + 16), tile[2], "shades")
@@ -65,12 +82,7 @@ class Level:
         for tile in floor.tiles():
             Tile(groups, (tile[0] * TILE_SIZE, tile[1] * TILE_SIZE + 16), tile[2], "obstacle")
         
-        # Objectssssssssss
-        floor = tmx_map.get_layer_by_name("objects")
-        groups = [self.visible_sprites, self.semi_obstacles_sprites]
-        # Drawing them
-        for obj in floor:
-            SemiCollidablePlatform(groups, (obj.x, obj.y + 16 - obj.height), obj.image, "semi_obstacles", 300)
+        self.enemy = WitchCraft(self.visible_sprites)
 
     def run(self, screen: pygame.Surface):
         """Called to updates the whole level
@@ -79,8 +91,9 @@ class Level:
         - Screen (pygame.Surface): The main display"""
         self.screen.blit(self.background, (0,0))
 
-        self.visible_sprites.update()
         self.semi_obstacles_sprites.update()
+        self.visible_sprites.update()
+
 
         # Camera 1
         # x = self.player.rect.centerx - self.offset
