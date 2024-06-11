@@ -30,6 +30,10 @@ class Player(pygame.sprite.Sprite):
         # Attributes
         self.rect = pygame.rect.Rect(0, 0, 42, 42)
         self.rect.midbottom = (400, 720)
+
+        self.hitbox = self.rect.copy()
+        self.hitbox = self.hitbox.inflate(-10, 0)
+        self.hitbox.center = self.rect.center
         
         self.obstacles = obstacles
         self.semi_obstacles = semi_obstacles
@@ -115,8 +119,10 @@ class Player(pygame.sprite.Sprite):
             self.re_calc_semi_platform()
         else:
             self.animation_controller.play_animation("idle")
-
             self.platform_movement()
+
+        self.hitbox.centerx = self.rect.centerx
+
         self.collisions("horizontal")
 
         if vector.y != 0 and self.can_jump:
@@ -125,8 +131,10 @@ class Player(pygame.sprite.Sprite):
         
         self.y_speed += self.gravity
         self.rect.y += self.y_speed
+        self.hitbox.centery = self.rect.centery
         self.collisions("vertical")
         self.semi_collision()
+
             
     def collisions(self, direction: str):
         """Checks for collisions
@@ -144,15 +152,22 @@ class Player(pygame.sprite.Sprite):
                 self.rect.left = self.X_LIMITS[0]
             
             # Obstacles
+            self.temp_rect = self.rect.copy()
+            self.rect = self.hitbox.copy()
             sprite = pygame.sprite.spritecollide(self, self.obstacles, False)
             if len(sprite) > 0:
                 sprite = sprite[0]
             else:
+                self.rect = self.temp_rect.copy()
                 return
+            
             if self.direction: # Going right
-                self.rect.left = sprite.rect.right
+                self.hitbox.left = sprite.rect.right
             else: # Going left
-                self.rect.right = sprite.rect.left
+                self.hitbox.right = sprite.rect.left
+
+            self.rect = self.temp_rect.copy()
+            self.rect.centerx = self.hitbox.centerx
 
         elif direction == "vertical":
             landed = False
@@ -163,9 +178,12 @@ class Player(pygame.sprite.Sprite):
                 landed = True
 
             # Collisions with platforms
+            self.temp_rect = self.rect.copy()
+            self.rect = self.hitbox.copy()
             sprite = pygame.sprite.spritecollide(self, self.obstacles, False)
             if len(sprite) > 0: # Makes sure a collision was made
                 sprite = sprite[0]
+                self.rect = self.temp_rect.copy()
 
                 if self.y_speed > 0: # Falling
                     self.rect.bottom = sprite.rect.top
@@ -173,6 +191,11 @@ class Player(pygame.sprite.Sprite):
                 else: # Jumping
                     self.rect.top = sprite.rect.bottom
                     self.y_speed = 0
+
+                self.hitbox.centery = self.rect.centery
+                
+            else:
+                self.rect = self.temp_rect.copy()
 
             if landed: # Landing effects
                 if not self.can_jump and self.y_speed > 30:

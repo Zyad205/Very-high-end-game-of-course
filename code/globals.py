@@ -16,9 +16,14 @@ PLAYER_PATHS = {
     "effect_land": SMAIN_DIR + "graphics/player/effects/land",
     "effect_attack": SMAIN_DIR + "graphics/player/effects/attack"}
 
-WITCHCRAFT_PATHS = {
-    "idle": SMAIN_DIR + "graphics/enemies/witchcraft/idle"
+
+
+VIRTUALGUY_PATHS = {
+    "idle": SMAIN_DIR + "graphics/enemies/virtualguy/idle",
+    "run": SMAIN_DIR + "graphics/enemies/virtualguy/run"
 }
+
+ENEMIES_IMG_MULTI = {"virtualguy": 2}
 
 MAPS_PATHS = [SMAIN_DIR + "maps/main.tmx"]
 BG_PATH = SMAIN_DIR + "graphics/bg.png"

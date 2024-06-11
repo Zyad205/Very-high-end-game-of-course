@@ -12,7 +12,7 @@ def debug(info: str, x: int = 0, y: int = 0):
     - X (int): The x position for the information
     - Y (int): The Y position for the information"""
 
-    if not DEBUGGING:
+    if DEBUGGING:
         return
     # Get screen
     screen = pygame.display.get_surface()

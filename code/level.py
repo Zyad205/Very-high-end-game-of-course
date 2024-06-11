@@ -82,7 +82,7 @@ class Level:
         for tile in floor.tiles():
             Tile(groups, (tile[0] * TILE_SIZE, tile[1] * TILE_SIZE + 16), tile[2], "obstacle")
         
-        self.enemy = WitchCraft(self.visible_sprites)
+        self.enemy = VirtualGuy(self.visible_sprites, self.obstacle_sprites, self.player)
 
     def run(self, screen: pygame.Surface):
         """Called to updates the whole level
@@ -134,8 +134,23 @@ class VisibleSprites(pygame.sprite.Group):
                 rect = sprite.rect.copy()
                 rect.x -= offset
                 screen.blit(sprite.image, (rect.x + width, rect.y))
-                sprite.draw_effects(offset)                
+                sprite.draw_effects(offset)
+
+                hitbox = sprite.hitbox.copy()
+                hitbox.x -= offset
+                
+                # pygame.draw.rect(screen, "red", hitbox, 2)
                 # pygame.draw.rect(screen, "yellow", rect, 2)
+
+            elif sprite.type == "enemy":
+                width = sprite.image.get_width()
+                width = 42 - width
+                width = int(width / 2)
+
+                rect = sprite.rect.copy()
+                rect.x -= offset
+                screen.blit(sprite.image, (rect.x + width, rect.y))
+
             else:
                 rect = sprite.rect.copy()
                 rect.x -= offset
