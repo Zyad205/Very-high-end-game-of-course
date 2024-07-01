@@ -4,7 +4,7 @@ from globals import *
 from debug import debug
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, groups, obstacles, semi_obstacles, x_limits=MAP_SIZE):
+    def __init__(self, groups, obstacles, semi_obstacles, attacking_signal, x_limits=MAP_SIZE):
 
         # The father init func
         super().__init__(groups)
@@ -31,17 +31,24 @@ class Player(pygame.sprite.Sprite):
         self.rect = pygame.rect.Rect(0, 0, 42, 42)
         self.rect.midbottom = (400, 720)
 
+        # Hitboxes
         self.hitbox = self.rect.copy()
         self.hitbox = self.hitbox.inflate(-10, 0)
         self.hitbox.center = self.rect.center
-        
+        self.attack_hitbox = self.rect.inflate(35, 0)
+
+        # Obstacles
         self.obstacles = obstacles
         self.semi_obstacles = semi_obstacles
+
+        # Attack signal
+        self.attacking_signal = attacking_signal
 
          # 1 - Left, 0 - Right
         self.direction = 0
         self.type = "player"
 
+        # Variables for the semi collidable obstacles
         self.x_offset_platform = None
         self.platform_on = None
 
@@ -71,20 +78,21 @@ class Player(pygame.sprite.Sprite):
 
 
     def update(self) -> None:
-        """Yes"""
+        """The logic update function"""
         self.animation_controller.update()
         self.image = pygame.transform.flip(
             self.animation_controller.image,
             flip_x=self.direction,
             flip_y=False)
         
+        # Yes we use it don't delete
         self.old_rect = self.rect.copy()
 
         self.update_timers()
         self.input()
             
     def input(self) -> None:
-        """Checks for all player related input"""
+        """Checks for all player related input and calls the movement functions"""
 
         keys = pygame.key.get_pressed()
         
@@ -98,6 +106,7 @@ class Player(pygame.sprite.Sprite):
             input_vector.y = 1
 
         self.movement(input_vector)
+
         if keys[pygame.K_l]:
             self.attack()
         if keys[pygame.K_j]:
@@ -108,6 +117,7 @@ class Player(pygame.sprite.Sprite):
 
         Parameters:
         - Vector (pygame.math.Vector2): The vector taken from input"""
+        
         if vector.x != 0:
             self.rect.x += vector.x * 5
             if vector.x > 0:
@@ -116,7 +126,8 @@ class Player(pygame.sprite.Sprite):
                 self.direction = 1
 
             self.animation_controller.play_animation("run")
-            self.re_calc_semi_platform()
+            self.recalculate_semi_platform()
+
         else:
             self.animation_controller.play_animation("idle")
             self.platform_movement()
@@ -125,6 +136,7 @@ class Player(pygame.sprite.Sprite):
 
         self.collisions("horizontal")
 
+        # Vertical movement
         if vector.y != 0 and self.can_jump:
             self.can_jump = False
             self.y_speed -= self.jump_power
@@ -132,9 +144,16 @@ class Player(pygame.sprite.Sprite):
         self.y_speed += self.gravity
         self.rect.y += self.y_speed
         self.hitbox.centery = self.rect.centery
+        
         self.collisions("vertical")
         self.semi_collision()
 
+        if self.direction:
+            self.attack_hitbox.right = self.rect.right
+        else:
+            self.attack_hitbox.left = self.rect.left
+
+        self.attack_hitbox.bottom = self.rect.bottom
             
     def collisions(self, direction: str):
         """Checks for collisions
@@ -207,13 +226,13 @@ class Player(pygame.sprite.Sprite):
                 self.can_jump = True            
     
     def semi_collision(self):
-        """Checks for collisions
-
-        Parameters:
-        - Direction (str): The axis which to check for collision in"""
+        """Checks for collisions"""
     
         landed = False
         # Collisions with platforms
+
+        temp_rect = self.rect.copy()
+        self.rect = self.hitbox.copy()
         sprite = pygame.sprite.spritecollide(self, self.semi_obstacles, False)
         if len(sprite) > 0: # Makes sure a collision was made
             if self.platform_on in sprite:
@@ -221,15 +240,21 @@ class Player(pygame.sprite.Sprite):
             else:
                 sprite = sprite[0]
             
+            self.rect = temp_rect.copy()
 
+            # To make sure the player is falling and also on top of the platform not started falling while 
+            # he was under it doesn't make sense while i'm writing it But without it 
             if self.y_speed > 0: # Falling
-                if self.old_rect.bottom <= sprite.rect.top:
+                if self.old_rect.bottom <= sprite.rect.top: 
                     self.rect.bottom = sprite.rect.top
                     landed = True
+                    
                     self.set_semi_platform(sprite)
 
         else:
+            self.rect = temp_rect.copy()
             self.set_semi_platform(None)
+
 
         if landed: # Landing effects
             if not self.can_jump and self.y_speed > 30:
@@ -238,9 +263,14 @@ class Player(pygame.sprite.Sprite):
                     self.play_effect("land")
             # Attributes
             self.y_speed = 0
-            self.can_jump = True            
+            self.can_jump = True      
     
     def set_semi_platform(self, sprite):
+        """Changes the stored variable for the platform player is on
+        and calculates the new offset from this platform
+        
+        Parameters:
+        - Sprite: The sprite for the platform"""
         if sprite == None:
             self.platform_on = None
             return
@@ -249,11 +279,13 @@ class Player(pygame.sprite.Sprite):
             self.platform_on = sprite
             self.x_offset_platform = self.rect.centerx - sprite.rect.centerx
         
-    def re_calc_semi_platform(self):
+    def recalculate_semi_platform(self):
+        """Recalculates the offset from the platform incase the player moved while on platform"""
         if self.platform_on is not None:
             self.x_offset_platform = self.rect.centerx - self.platform_on.rect.centerx
 
     def platform_movement(self):
+        """Moves the player with the platform movement"""
         if self.platform_on is not None:
             self.rect.centerx = self.platform_on.rect.centerx + self.x_offset_platform
 
@@ -262,6 +294,13 @@ class Player(pygame.sprite.Sprite):
         if not self.timers["attack"].active:
             self.animation_controller.play_animation("attack", True)
             self.play_effect("attack")
+
+            if self.direction:
+                self.attack_hitbox.right = self.rect.right    
+            else:
+                self.attack_hitbox.left = self.rect.left
+
+            self.attacking_signal("attack", self.attack_hitbox)
             self.timers["attack"].activate()
 
     def s_attack(self):
@@ -269,6 +308,9 @@ class Player(pygame.sprite.Sprite):
         if not self.timers["s_attack"].active:
             self.animation_controller.play_animation("s_attack", True)
             self.play_effect("attack")
+
+            self.attacking_signal("s_attack", self.attack_hitbox)
+
             self.timers["s_attack"].activate()
 
     def play_effect(self, effect: str):

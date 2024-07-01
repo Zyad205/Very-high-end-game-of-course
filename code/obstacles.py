@@ -22,11 +22,20 @@ class SemiCollidablePlatform(Tile):
     def __init__(
             self,
             groups: list,
-            pos: tuple,
+            pos: tuple[int],
             surf: pygame.Surface,
             type: str,
             x_movement: int = 0,
             speed: int = 1):
+        """The init function
+        
+        Parameters:
+        - Groups: The groups where the sprite get put in
+        - Pos (tuple[int]): The position where the platform start moving
+        - Surf (pygame.Surface): The image for the platform
+        - Type (str): The type of this tile
+        - X movement (int): How much will the platform move
+        - Speed (int): The speed of the platform"""
         
         super().__init__(groups, pos, surf, type)
         
@@ -43,6 +52,7 @@ class SemiCollidablePlatform(Tile):
         self.x = self.rect.x
 
     def update(self):
+        """Updating the platform position"""
         if not self.x_movement:
             return
         

@@ -20,7 +20,8 @@ PLAYER_PATHS = {
 
 VIRTUALGUY_PATHS = {
     "idle": SMAIN_DIR + "graphics/enemies/virtualguy/idle",
-    "run": SMAIN_DIR + "graphics/enemies/virtualguy/run"
+    "run": SMAIN_DIR + "graphics/enemies/virtualguy/run",
+    "hit": SMAIN_DIR + "graphics/enemies/virtualguy/hit"
 }
 
 ENEMIES_IMG_MULTI = {"virtualguy": 2}

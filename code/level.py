@@ -6,6 +6,19 @@ from pytmx import TiledMap
 from obstacles import *
 from entities import *
 from random import randint
+
+def has_method(o, name: str):
+    """Checks if an object has a method
+
+    Parameters:
+    - O (object): Any python object
+    - Name (str): The method name
+
+    Return:
+    - Bool: Returns true if it has it false otherwise"""
+    return callable(getattr(o, name, None))
+
+
 class Level:
     def __init__(self, tmx_map: str, bg_path: str):
         """The init func
@@ -48,7 +61,7 @@ class Level:
             Tile(groups, (tile[0] * TILE_SIZE, tile[1] * TILE_SIZE + 16), tile[2], "shades")
 
 
-        # Objectssssssssss
+        # Objects
         floor = tmx_map.get_layer_by_name("objects")
         groups = [self.visible_sprites, self.semi_obstacles_sprites]
         # Drawing them
@@ -60,13 +73,9 @@ class Level:
                 "semi_obstacles",
                 300,
                 randint(400, 1000) / 500)
-
-        # Creating the player
-        self.player = Player(
-            [self.visible_sprites],
-            self.obstacle_sprites,
-            self.semi_obstacles_sprites,
-            [0, 3000])
+            
+        # Create PLayer and enemies
+        self.create_entities()
         
         # For the foreground textures
         floor = tmx_map.get_layer_by_name("fg_tex")
@@ -82,6 +91,15 @@ class Level:
         for tile in floor.tiles():
             Tile(groups, (tile[0] * TILE_SIZE, tile[1] * TILE_SIZE + 16), tile[2], "obstacle")
         
+    def create_entities(self):
+        # Creates the player and enemies
+        self.player = Player(
+            [self.visible_sprites],
+            self.obstacle_sprites,
+            self.semi_obstacles_sprites,
+            self.player_attacking,
+            [0, 3000])
+        
         self.enemy = VirtualGuy(self.visible_sprites, self.obstacle_sprites, self.player)
 
     def run(self, screen: pygame.Surface):
@@ -94,25 +112,24 @@ class Level:
         self.semi_obstacles_sprites.update()
         self.visible_sprites.update()
 
+        self.calculate_camera()
+        self.visible_sprites.draw(screen, self.offset)
 
-        # Camera 1
-        # x = self.player.rect.centerx - self.offset
-        # if x <= 40:
-        #     self.offset = self.player.rect.centerx - 40
-        # elif x >= 1240:
-        #     self.offset = self.player.rect.centerx - 1240
-        # if self.player.rect.centerx <= 50:
-        #     self.offset = 0
-
-        # Camera 2
+    def calculate_camera(self):
+        # Camera
         x = self.player.rect.centerx
         half_the_map = MAP_SIZE[0] / 2
         if x > half_the_map and self.width - half_the_map > x:
             self.offset = x - half_the_map
 
 
-        self.visible_sprites.draw(screen, self.offset)
-        
+    
+    def player_attacking(self, attack_type, hitbox=pygame.Rect):
+        if hitbox.colliderect(self.enemy):
+            if attack_type == "s_attack":
+                self.enemy.get_hit(50)
+            elif attack_type == "attack":
+                self.enemy.get_hit(25)
 
 class VisibleSprites(pygame.sprite.Group):
     def __init__(self):
@@ -127,29 +144,35 @@ class VisibleSprites(pygame.sprite.Group):
         - Offset (int): The x_offset for the map drawing"""
         for sprite in self.sprites():
             if sprite.type == "player":
-                width = sprite.image.get_width()
+                width = sprite.image.get_width()                
                 width = 42 - width
                 width = int(width / 2)
 
                 rect = sprite.rect.copy()
                 rect.x -= offset
+
                 screen.blit(sprite.image, (rect.x + width, rect.y))
                 sprite.draw_effects(offset)
 
-                hitbox = sprite.hitbox.copy()
-                hitbox.x -= offset
-                
+                # hitbox = sprite.hitbox.copy()
+                # hitbox.x -= offset
                 # pygame.draw.rect(screen, "red", hitbox, 2)
-                # pygame.draw.rect(screen, "yellow", rect, 2)
+            
+                # attack_hitbox = sprite.attack_hitbox.copy()
+                # attack_hitbox.x -= offset
+                # pygame.draw.rect(screen, "yellow", attack_hitbox, 2)
 
             elif sprite.type == "enemy":
+                
                 width = sprite.image.get_width()
                 width = 42 - width
                 width = int(width / 2)
 
                 rect = sprite.rect.copy()
                 rect.x -= offset
+
                 screen.blit(sprite.image, (rect.x + width, rect.y))
+                sprite.draw_bars(offset)
 
             else:
                 rect = sprite.rect.copy()

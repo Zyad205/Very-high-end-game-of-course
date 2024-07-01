@@ -1,13 +1,14 @@
 import pygame
 from os import walk
 
+
 class Animation:
     def __init__(
             self,
             folder_path: str,
             animation_speed: float,
             img_multi: int = 1,
-            play_once: bool = False) -> None:
+            play_once: bool = False):
         """It will control the animations by you calling the update function,
         you provide the folder that has the images
 
@@ -120,7 +121,7 @@ class AnimationController:
             return True
                                       
 
-    def change_animation(self, new_animation: str):
+    def change_animation(self, new_animation: str) -> None:
         """Changes the current animation
         Parameters:
         - New_animation (str): The name of the new animation"""
@@ -154,7 +155,7 @@ class Effect(Animation):
 
         self.playing = False
 
-    def play(self):
+    def play(self) -> None:
         """Starts playing the effect if it's not currently playing"""
 
         if not self.playing:
@@ -162,7 +163,7 @@ class Effect(Animation):
             self.playing = True
             self.reset()
 
-    def draw(self, pos, flip: bool = 0):
+    def draw(self, pos, flip: bool = 0) -> None:
         """Draw the particles
 
         Parameters:
@@ -202,12 +203,12 @@ class Timer:
         self.active = False
         self.repeat = repeat
 
-    def activate(self):
+    def activate(self) -> None:
         """Start the timer and resets it"""
         self.active = True
         self.start_time = pygame.time.get_ticks()
 
-    def deactivate(self):
+    def deactivate(self) -> None:
         """Stops the timer"""
 
         self.active = False
@@ -215,7 +216,7 @@ class Timer:
         if self.repeat:
             self.activate()
 
-    def update(self):
+    def update(self) -> None:
         """Updates the timer and checks if the timer has ended"""
 
         current_time = pygame.time.get_ticks()
@@ -225,3 +226,101 @@ class Timer:
 
             self.deactivate() 
 
+class StatusBar:
+    def __init__(
+            self, 
+            max_num: int,
+            current_num: int,
+            active_bar_color: str,
+            bg_bar_color: str,
+            outline_color: str,
+            draw_bg: bool,
+            draw_outline: bool,
+            width: int,
+            height: int,
+            center_pos: tuple[int]):
+        """The init function
+        
+        Parameters:
+        - Max num(int): The maximum number for the stat
+        - Current num(int): The starting value for the stat
+        - Active bar color(str): The active bar color in hex
+        - Bg bar color(str): The background bar color in hex
+        - Outline color(str): The outline color in hex
+        - Draw bg(bool): Wether to draw the bg or not
+        - Draw outline(bool): Wether to draw the outline or not
+        - Width (int): The width of the bar
+        - height (int): The height of the bar
+        - Center pos(tuple[int]): The coordinates for the middle of the bar
+        """
+        
+        # Attributes
+        self.max_num = max_num
+        self.current_num = current_num
+
+        self.active_bar_color = active_bar_color
+        self.bg_bar_color = bg_bar_color
+        self.outline_color = outline_color
+
+        self.draw_bg = draw_bg
+        self.draw_outline = draw_outline
+
+        self.width = width
+        self.height = height
+        self.center_pos = center_pos
+
+        self.stat_width = self.width * self.current_num / self.max_num
+        self.stat_width = int(self.stat_width)
+
+        self.bg_bar = pygame.rect.Rect(0, 0, width, height)
+        self.active_bar = pygame.rect.Rect(0, 0, self.stat_width, height)
+
+        self.bg_bar.center = center_pos
+        self.active_bar.topleft = self.bg_bar.topleft
+
+        self.display = pygame.display.get_surface()
+
+        
+    def update_pos(self, new_center: tuple[int]) -> None:
+        """Updates the position of the bar
+        
+        Parameters:
+        - New center(tuple[int]): New coordinates for the center of the bar"""
+        self.bg_bar.center = new_center
+        self.active_bar.topleft = self.bg_bar.topleft
+
+    def update_stat(self, new_num: int) -> None:
+        """Changes the stat value and the width or progression of the active bar
+        
+        Parameters
+        - New num(int): The new value"""
+        self.current_num = new_num
+
+        self.stat_width = self.width * self.current_num / self.max_num
+        self.stat_width = int(self.stat_width)
+
+        self.active_bar.width = self.stat_width
+        self.active_bar.topleft = self.bg_bar.topleft
+
+    def draw(self, x_offset: int = 0) -> None:
+        """Draws the bar
+        
+        Parameters:
+        - X offset(int): The x offset for the camera"""
+        if self.draw_bg:
+            rect = self.bg_bar.copy()
+            rect.x -= x_offset
+            pygame.draw.rect(self.display, self.bg_bar_color, rect)
+
+        rect = self.active_bar.copy()
+        rect.x -= x_offset
+        pygame.draw.rect(self.display, self.active_bar_color, rect)
+
+        if self.draw_outline:
+            rect = self.bg_bar.copy()
+            rect.x -= x_offset
+            rect.x -= 2
+            rect.y -= 2
+            rect.width += 4
+            rect.height += 4
+            pygame.draw.rect(self.display, self.outline_color, rect, 2, 2)
