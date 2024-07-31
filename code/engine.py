@@ -234,6 +234,7 @@ class StatusBar:
             active_bar_color: str,
             bg_bar_color: str,
             outline_color: str,
+            outline_width: int,
             draw_bg: bool,
             draw_outline: bool,
             width: int,
@@ -247,6 +248,7 @@ class StatusBar:
         - Active bar color(str): The active bar color in hex
         - Bg bar color(str): The background bar color in hex
         - Outline color(str): The outline color in hex
+        - Outline width(int): The outline width
         - Draw bg(bool): Wether to draw the bg or not
         - Draw outline(bool): Wether to draw the outline or not
         - Width (int): The width of the bar
@@ -261,6 +263,8 @@ class StatusBar:
         self.active_bar_color = active_bar_color
         self.bg_bar_color = bg_bar_color
         self.outline_color = outline_color
+
+        self.outline_width = outline_width
 
         self.draw_bg = draw_bg
         self.draw_outline = draw_outline
@@ -319,8 +323,8 @@ class StatusBar:
         if self.draw_outline:
             rect = self.bg_bar.copy()
             rect.x -= x_offset
-            rect.x -= 2
-            rect.y -= 2
-            rect.width += 4
-            rect.height += 4
-            pygame.draw.rect(self.display, self.outline_color, rect, 2, 2)
+            rect.x -= self.outline_width
+            rect.y -= self.outline_width
+            rect.width += self.outline_width * 2
+            rect.height += self.outline_width * 2
+            pygame.draw.rect(self.display, self.outline_color, rect, self.outline_width, 2)

@@ -12,16 +12,17 @@ PLAYER_PATHS = {
     "run": SMAIN_DIR + "graphics/player/images/run",
     "land": SMAIN_DIR + "graphics/player/images/land",
     "attack": SMAIN_DIR + "graphics/player/images/attack",
-    "s_attack": SMAIN_DIR + "graphics/player/images/s_attack",
+    "hit": SMAIN_DIR + "graphics/player/images/hit",
     "effect_land": SMAIN_DIR + "graphics/player/effects/land",
     "effect_attack": SMAIN_DIR + "graphics/player/effects/attack"}
 
 
 
 VIRTUALGUY_PATHS = {
-    "idle": SMAIN_DIR + "graphics/enemies/virtualguy/idle",
-    "run": SMAIN_DIR + "graphics/enemies/virtualguy/run",
-    "hit": SMAIN_DIR + "graphics/enemies/virtualguy/hit"
+    "idle": SMAIN_DIR + "graphics/enemies/virtualguy/images/idle",
+    "run": SMAIN_DIR + "graphics/enemies/virtualguy/images/run",
+    "hit": SMAIN_DIR + "graphics/enemies/virtualguy/images/hit",
+    "effect_hit": SMAIN_DIR + "graphics/enemies/virtualguy/effects/hit"
 }
 
 ENEMIES_IMG_MULTI = {"virtualguy": 2}

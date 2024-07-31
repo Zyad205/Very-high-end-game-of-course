@@ -6,6 +6,7 @@ from pytmx import TiledMap
 from obstacles import *
 from entities import *
 from random import randint
+from signals import *
 
 def has_method(o, name: str):
     """Checks if an object has a method
@@ -33,9 +34,11 @@ class Level:
         self.obstacle_sprites = pygame.sprite.Group()
         self.semi_obstacles_sprites = pygame.sprite.Group()
         
+        self.signals = Signals(self)
         
         # Setting up the map
         self.setup_map(tmx_map)
+
         
         # The main background
         self.background = pygame.image.load(bg_path).convert()
@@ -97,10 +100,14 @@ class Level:
             [self.visible_sprites],
             self.obstacle_sprites,
             self.semi_obstacles_sprites,
-            self.player_attacking,
+            self.signals.player_attacking,
             [0, 3000])
         
-        self.enemy = VirtualGuy(self.visible_sprites, self.obstacle_sprites, self.player)
+        self.enemy = VirtualGuy(
+            self.visible_sprites,
+            self.obstacle_sprites,
+            self.player, 
+            self.signals.virtual_guy_attacking)
 
     def run(self, screen: pygame.Surface):
         """Called to updates the whole level
@@ -123,13 +130,6 @@ class Level:
             self.offset = x - half_the_map
 
 
-    
-    def player_attacking(self, attack_type, hitbox=pygame.Rect):
-        if hitbox.colliderect(self.enemy):
-            if attack_type == "s_attack":
-                self.enemy.get_hit(50)
-            elif attack_type == "attack":
-                self.enemy.get_hit(25)
 
 class VisibleSprites(pygame.sprite.Group):
     def __init__(self):
@@ -153,6 +153,7 @@ class VisibleSprites(pygame.sprite.Group):
 
                 screen.blit(sprite.image, (rect.x + width, rect.y))
                 sprite.draw_effects(offset)
+                sprite.draw_bars(offset)
 
                 # hitbox = sprite.hitbox.copy()
                 # hitbox.x -= offset
@@ -163,7 +164,8 @@ class VisibleSprites(pygame.sprite.Group):
                 # pygame.draw.rect(screen, "yellow", attack_hitbox, 2)
 
             elif sprite.type == "enemy":
-                
+                sprite.draw_effects(offset)
+
                 width = sprite.image.get_width()
                 width = 42 - width
                 width = int(width / 2)

@@ -4,7 +4,7 @@ from globals import *
 from debug import debug
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, groups, obstacles, semi_obstacles, attacking_signal, x_limits=MAP_SIZE):
+    def __init__(self, groups, obstacles, semi_obstacles, attack_signal, x_limits=MAP_SIZE):
 
         # The father init func
         super().__init__(groups)
@@ -14,11 +14,11 @@ class Player(pygame.sprite.Sprite):
                            "run": Animation(PLAYER_PATHS["run"], 0.15, PLAYER_IMG_MULTI),
                            "land": Animation(PLAYER_PATHS["land"], 0.15, PLAYER_IMG_MULTI, 1),
                            "attack": Animation(PLAYER_PATHS["attack"], 0.2, PLAYER_IMG_MULTI, 1),
-                           "s_attack": Animation(PLAYER_PATHS["s_attack"], 0.15, PLAYER_IMG_MULTI, 1)}
+                           "hit": Animation(PLAYER_PATHS["hit"], 0.15, PLAYER_IMG_MULTI, 1)}
         
         self.animation_controller = AnimationController(
             self.animations,
-            ["land", "attack", "s_attack"],
+            ["land", "attack", "hit"],
             "idle")
 
         # Effects
@@ -42,7 +42,7 @@ class Player(pygame.sprite.Sprite):
         self.semi_obstacles = semi_obstacles
 
         # Attack signal
-        self.attacking_signal = attacking_signal
+        self.attacking_signal = attack_signal
 
          # 1 - Left, 0 - Right
         self.direction = 0
@@ -58,7 +58,22 @@ class Player(pygame.sprite.Sprite):
         self.y_speed = 0
         self.jump_power = 21
         self.can_jump = True
+        self.rebounce = False
         
+
+        self.health = 100
+        self.health_bar = StatusBar(
+            100,
+            100,
+            "#00e1ff",
+            "#ff3224",
+            "#e0dec8",
+            4,
+            1,
+            1,
+            330,
+            15,
+            (180, 25))
 
         # World limits
         self.X_LIMITS = x_limits
@@ -66,8 +81,8 @@ class Player(pygame.sprite.Sprite):
 
         # Timers
         self.timers = {
-            "attack": Timer(700),
-            "s_attack": Timer(3000)
+            "attack": Timer(500),
+            "hit": Timer(200)
         }
     
     def update_timers(self):
@@ -109,8 +124,7 @@ class Player(pygame.sprite.Sprite):
 
         if keys[pygame.K_l]:
             self.attack()
-        if keys[pygame.K_j]:
-            self.s_attack()
+
 
     def movement(self, vector: pygame.math.Vector2):
         """Moves the player according to the the input_vector
@@ -118,12 +132,26 @@ class Player(pygame.sprite.Sprite):
         Parameters:
         - Vector (pygame.math.Vector2): The vector taken from input"""
         
+        if self.timers["hit"].active:
+                
+            x_speed = 1
+            if self.direction_when_hit:
+                x_speed = -1
+
+            vector.x = x_speed
+
+
         if vector.x != 0:
             self.rect.x += vector.x * 5
+                
             if vector.x > 0:
                 self.direction = 0
             else:
                 self.direction = 1
+
+            if self.timers["hit"].active:
+                
+                self.direction = not self.direction_when_hit
 
             self.animation_controller.play_animation("run")
             self.recalculate_semi_platform()
@@ -303,15 +331,20 @@ class Player(pygame.sprite.Sprite):
             self.attacking_signal("attack", self.attack_hitbox)
             self.timers["attack"].activate()
 
-    def s_attack(self):
-        """Uses the s attack"""
-        if not self.timers["s_attack"].active:
-            self.animation_controller.play_animation("s_attack", True)
-            self.play_effect("attack")
+    def get_hit(self, damage: int, hitbox):
+        self.health -= damage
+        self.health_bar.update_stat(self.health)
+        self.timers["hit"].activate()
 
-            self.attacking_signal("s_attack", self.attack_hitbox)
+        direction = 0 
+        if hitbox.centerx - self.rect.centerx > 0:
+            direction = 1 
 
-            self.timers["s_attack"].activate()
+        self.y_speed = -14
+
+        self.direction_when_hit = direction
+
+        self.animation_controller.play_animation("hit", True)
 
     def play_effect(self, effect: str):
         """Plays an effect if it's not playing
@@ -349,3 +382,6 @@ class Player(pygame.sprite.Sprite):
             # Clears the finished effects
             if not the_effect.playing:
                 self.active_effects.remove(effect)
+
+    def draw_bars(self, offset):
+        self.health_bar.draw()

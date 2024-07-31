@@ -15,10 +15,10 @@ def is_close(object_one, object_two, distance: int):
     Returns
     - Bool: Returns true is they are near false otherwise"""
 
-    return hypot(object_two.x-object_one.x, object_two.y-object_one.y) < float(distance)
+    return hypot(object_two.centerx-object_one.centerx, object_two.centery-object_one.centery) < float(distance)
 
 class VirtualGuy(pygame.sprite.Sprite):
-    def __init__(self, groups, obstacles, player):
+    def __init__(self, groups, obstacles, player, attack_signal):
         
         # The father init function
         super().__init__(groups)
@@ -43,11 +43,15 @@ class VirtualGuy(pygame.sprite.Sprite):
         # Animation controller
         self.animation_controller = AnimationController(self.animations, ["hit"], "idle")
 
+        self.effects = {"hit": Effect(VIRTUALGUY_PATHS["effect_hit"], 0.3, 1)}
+        self.active_effects = []
+
         # Attributes
         self.player = player
         self.obstacles = obstacles
         self.type = "enemy"
-        
+        self.attack_signal = attack_signal
+
         self.image = self.animation_controller.image
         self.rect = self.image.get_rect(center=(200, 470))
 
@@ -63,7 +67,7 @@ class VirtualGuy(pygame.sprite.Sprite):
         self.x_speed = 0
 
         # Timers
-        self.timers = {"hit": Timer(500)}
+        self.timers = {"hit": Timer(500), "attack": Timer(300)}
 
         # Health
         self.health = 100
@@ -73,6 +77,7 @@ class VirtualGuy(pygame.sprite.Sprite):
             "red",
             "yellow",
             "white",
+            2,
             False,
             True,
             80,
@@ -90,6 +95,7 @@ class VirtualGuy(pygame.sprite.Sprite):
         
         # Updates timers
         self.update_timers()
+
         
         # Checks if the player is close
         close = is_close(self.rect, self.player.rect, 200)
@@ -102,6 +108,9 @@ class VirtualGuy(pygame.sprite.Sprite):
             self.animation_controller.play_animation("idle")
 
         self.movement()
+        self.attack_player()
+
+        # Update health bar pos
         rect = self.rect.copy()
         rect.y -= 40
         self.health_bar.update_pos(rect.center)
@@ -123,13 +132,23 @@ class VirtualGuy(pygame.sprite.Sprite):
         
 
     def movement(self):
-        if self.x_speed != 0 and not self.timers["hit"].active:
+        if self.x_speed != 0 and not self.timers["hit"].active and not self.timers["attack"].active:
             self.rect.x += self.x_speed
             self.animation_controller.play_animation("run")
             self.collisions("horizontal")
 
+        elif self.timers["hit"].active:
+            if self.direction_when_hit:
+                x_speed = 1
+            else:
+                x_speed = -1
+
+            self.rect.x += x_speed
+            self.collisions("horizontal")
+
+
         self.y_speed += self.gravity
-        self.rect.y += self.y_speed
+        self.rect.y += self.y_speed 
         self.collisions("vertical")
     
     def collisions(self, direction):
@@ -175,16 +194,63 @@ class VirtualGuy(pygame.sprite.Sprite):
         self.animation_controller.play_animation("hit", 1)
         self.timers["hit"].activate()
         self.health -= damage
-        if self.health <= 0:
-            self.kill()
+        self.play_effect("hit")
+
+        self.direction_when_hit = self.direction
+
+        # if self.health <= 0:
+        #     self.kill()
         self.health_bar.update_stat(self.health)
-        
+
+        self.y_speed = -6
+
+    def attack_player(self):
+        if is_close(self.player.rect, self.rect, 30):
+            if not self.timers["attack"].active:
+
+                self.attack_signal(self.rect)
+                self.timers["attack"].activate()
+
     def update_timers(self):
         """Updates all timers"""
 
         for timer in self.timers.values():
             timer.update()
-    
+
+    def play_effect(self, effect: str):
+        """Plays an effect if it's not playing
+
+        Parameters:
+        - Effect (str): The name of the effect in the effects dict"""
+        if not effect in self.active_effects:
+            self.active_effects.append(effect)
+            self.effects[effect].play() 
+
     def draw_bars(self, x_offset):
         self.health_bar.draw(x_offset)
 
+    def draw_effects(self, x_offset: int):
+        """Draws all active effects
+
+        Parameters:
+        - X_offset (int): The x_offset from the map drawing"""
+        for effect in self.active_effects:
+            the_effect = self.effects[effect]
+            rect = self.rect.copy()
+            rect.x -= x_offset
+
+            if effect == "hit":
+                rect = self.rect.copy()
+                rect.y -= 5
+                if self.direction_when_hit:
+                    rect = rect.bottomright
+                    flip = True
+                else:
+                    rect = rect.bottomleft
+                    flip = False
+
+                the_effect.draw(rect, flip)
+
+            # Clears the finished effects
+            if not the_effect.playing:
+                self.active_effects.remove(effect)
