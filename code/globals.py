@@ -1,7 +1,7 @@
 from sys import argv
 from os.path import dirname
 
-DEBUGGING = 0
+DEBUGGING = False
 
 # PATHS
 MAIN_DIR = dirname(dirname(argv[0]))

@@ -1,5 +1,7 @@
+
 import pygame
 from globals import TILE_SIZE
+import globals
 
 
 class Tile(pygame.sprite.Sprite):

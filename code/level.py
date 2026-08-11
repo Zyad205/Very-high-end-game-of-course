@@ -114,6 +114,7 @@ class Level:
         
         Parameters:
         - Screen (pygame.Surface): The main display"""
+
         self.screen.blit(self.background, (0,0))
 
         self.semi_obstacles_sprites.update()
@@ -144,9 +145,10 @@ class VisibleSprites(pygame.sprite.Group):
         - Offset (int): The x_offset for the map drawing"""
         for sprite in self.sprites():
             if sprite.type == "player":
-                width = sprite.image.get_width()                
+                width = sprite.image.get_width()
                 width = 42 - width
                 width = int(width / 2)
+
 
                 rect = sprite.rect.copy()
                 rect.x -= offset
@@ -154,14 +156,20 @@ class VisibleSprites(pygame.sprite.Group):
                 screen.blit(sprite.image, (rect.x + width, rect.y))
                 sprite.draw_effects(offset)
                 sprite.draw_bars(offset)
+                
+                # Will draw hitboxes for the player
+                if globals.DEBUGGING: 
 
-                # hitbox = sprite.hitbox.copy()
-                # hitbox.x -= offset
-                # pygame.draw.rect(screen, "red", hitbox, 2)
-            
-                # attack_hitbox = sprite.attack_hitbox.copy()
-                # attack_hitbox.x -= offset
-                # pygame.draw.rect(screen, "yellow", attack_hitbox, 2)
+                    hitbox = sprite.hitbox.copy()
+                    debug(f"x: {hitbox.centerx}, y: {hitbox.centery}")
+                    hitbox.x -= offset
+
+
+                    pygame.draw.rect(screen, "red", hitbox, 2)
+                
+                    attack_hitbox = sprite.attack_hitbox.copy()
+                    attack_hitbox.x -= offset
+                    pygame.draw.rect(screen, "yellow", attack_hitbox, 2)
 
             elif sprite.type == "enemy":
                 sprite.draw_effects(offset)
@@ -175,6 +183,12 @@ class VisibleSprites(pygame.sprite.Group):
 
                 screen.blit(sprite.image, (rect.x + width, rect.y))
                 sprite.draw_bars(offset)
+
+                if globals.DEBUGGING:
+                    hitbox = sprite.rect.copy()
+                    hitbox.x -= offset
+                    pygame.draw.rect(screen, "red", hitbox, 2)
+                
 
             else:
                 rect = sprite.rect.copy()

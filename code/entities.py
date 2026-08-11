@@ -242,6 +242,7 @@ class VirtualGuy(pygame.sprite.Sprite):
             if effect == "hit":
                 rect = self.rect.copy()
                 rect.y -= 5
+                rect.x -= x_offset
                 if self.direction_when_hit:
                     rect = rect.bottomright
                     flip = True

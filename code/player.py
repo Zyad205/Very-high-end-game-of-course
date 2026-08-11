@@ -20,7 +20,7 @@ class Player(pygame.sprite.Sprite):
             self.animations,
             ["land", "attack", "hit"],
             "idle")
-
+ 
         # Effects
         self.effects = {"land": Effect(PLAYER_PATHS["effect_land"], 0.2, PLAYER_EFFECTS_MULTI),
                         "attack": Effect(PLAYER_PATHS["effect_attack"], 0.3, PLAYER_EFFECTS_MULTI)}
@@ -132,11 +132,11 @@ class Player(pygame.sprite.Sprite):
         Parameters:
         - Vector (pygame.math.Vector2): The vector taken from input"""
         
-        if self.timers["hit"].active:
+        if self.rebounce:
                 
-            x_speed = 1
+            x_speed = 0.7
             if self.direction_when_hit:
-                x_speed = -1
+                x_speed = -0.7
 
             vector.x = x_speed
 
@@ -149,8 +149,7 @@ class Player(pygame.sprite.Sprite):
             else:
                 self.direction = 1
 
-            if self.timers["hit"].active:
-                
+            if self.rebounce:
                 self.direction = not self.direction_when_hit
 
             self.animation_controller.play_animation("run")
@@ -207,8 +206,11 @@ class Player(pygame.sprite.Sprite):
             else:
                 self.rect = self.temp_rect.copy()
                 return
-            
-            if self.direction: # Going right
+            direction = 1
+            if self.old_rect.x - self.rect.x < 0:
+                direction = 0
+
+            if direction: # Going right
                 self.hitbox.left = sprite.rect.right
             else: # Going left
                 self.hitbox.right = sprite.rect.left
@@ -245,14 +247,18 @@ class Player(pygame.sprite.Sprite):
                 self.rect = self.temp_rect.copy()
 
             if landed: # Landing effects
+                if self.rebounce: self.rebounce -= 1
+
                 if not self.can_jump and self.y_speed > 30:
                     # Effects
                     if self.animation_controller.play_animation("land"):
                         self.play_effect("land")
                 # Attributes
                 self.y_speed = 0
-                self.can_jump = True            
-    
+                self.can_jump = True
+
+                if self.rebounce:
+                    self.y_speed = -12
     def semi_collision(self):
         """Checks for collisions"""
     
@@ -331,10 +337,11 @@ class Player(pygame.sprite.Sprite):
             self.attacking_signal("attack", self.attack_hitbox)
             self.timers["attack"].activate()
 
-    def get_hit(self, damage: int, hitbox):
+    def get_hit(self, damage: int, hitbox):  
         self.health -= damage
         self.health_bar.update_stat(self.health)
-        self.timers["hit"].activate()
+        self.rebounce = 2
+
 
         direction = 0 
         if hitbox.centerx - self.rect.centerx > 0:

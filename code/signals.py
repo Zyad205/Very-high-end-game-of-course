@@ -15,4 +15,5 @@ class Signals:
 
     def virtual_guy_attacking(self, hitbox=pygame.Rect):
         if hitbox.colliderect(self.level.player):
-            self.level.player.get_hit(10, hitbox)
+            if not self.level.player.timers["hit"].active:
+                self.level.player.get_hit(10, hitbox)
