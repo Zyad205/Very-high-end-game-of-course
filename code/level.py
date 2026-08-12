@@ -123,6 +123,11 @@ class Level:
         self.calculate_camera()
         self.visible_sprites.draw(screen, self.offset)
 
+        debug(f"rebounce: {self.player.rebounce}")
+        debug(f"Temp: {self.player.temp}")
+        debug(f"Still: {self.player.temp2}")
+
+
     def calculate_camera(self):
         # Camera
         x = self.player.rect.centerx
@@ -161,7 +166,7 @@ class VisibleSprites(pygame.sprite.Group):
                 if globals.DEBUGGING: 
 
                     hitbox = sprite.hitbox.copy()
-                    debug(f"x: {hitbox.bottom}, y: {hitbox.centery}")
+                    debug(f"x: {hitbox.centerx}, y: {hitbox.centery}")
                     hitbox.x -= offset
 
 

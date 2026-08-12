@@ -87,6 +87,7 @@ class Player(pygame.sprite.Sprite):
 
         # Dis is america
         self.temp = 0
+        self.temp2 = 0
     
     def update_timers(self):
         """Updates all timers"""
@@ -97,7 +98,6 @@ class Player(pygame.sprite.Sprite):
 
     def update(self) -> None:
         """The logic update function"""
-        debug(self.temp)
         self.animation_controller.update()
         self.image = pygame.transform.flip(
             self.animation_controller.image,
@@ -105,7 +105,7 @@ class Player(pygame.sprite.Sprite):
             flip_y=False)
         
         # Yes we use it don't delete
-        self.old_rect = self.rect.copy()
+        self.old_rect = self.hitbox.copy()
 
         self.update_timers()
         self.input()
@@ -123,6 +123,9 @@ class Player(pygame.sprite.Sprite):
             input_vector.x -= 1
         if keys[pygame.K_w]:
             input_vector.y = 1
+        if keys[pygame.K_r]:
+            self.temp = 0
+            self.temp2 = 0 
 
         self.movement(input_vector)
 
@@ -210,24 +213,28 @@ class Player(pygame.sprite.Sprite):
             self.temp_rect = self.rect.copy()
             self.rect = self.hitbox.copy()
             sprite = pygame.sprite.spritecollide(self, self.obstacles, False)
+            seconds = pygame.time.get_ticks() / 1000
 
             if len(sprite) > 0:
                 sprite = sprite[0]
-                if self.rebounce: self.temp = "allinged after bouncing"
-
             else:
                 self.rect = self.temp_rect.copy()
                 return
 
             direction = 1
-            if self.old_rect.x - self.rect.x < 0:
+            if self.old_rect.x - self.hitbox.x < 0:
                 direction = 0
 
             if direction: # Going right
                 self.hitbox.left = sprite.rect.right
             else: # Going left
-                self.hitbox.right = sprite.rect.left
-                if self.rebounce: self.temp = "allinged after bouncing"
+                self.hitbox.right = sprite.rect.left 
+                if self.rebounce:   self.temp = f"Shabang: {seconds}"
+
+            self.rect = self.hitbox.copy()
+            sprite = pygame.sprite.spritecollide(self, self.obstacles, False)
+            if len(sprite) > 0:
+                self.temp2 = f"Still colliding: {seconds}"
 
             self.rect = self.temp_rect.copy()
             self.rect.centerx = self.hitbox.centerx

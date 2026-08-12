@@ -53,7 +53,7 @@ class VirtualGuy(pygame.sprite.Sprite):
         self.attack_signal = attack_signal
 
         self.image = self.animation_controller.image
-        self.rect = self.image.get_rect(center=(200, 470))
+        self.rect = self.image.get_rect(center=(920, 700))
 
         # Y movement related attributes
         self.y_speed = 0
