@@ -161,7 +161,7 @@ class VisibleSprites(pygame.sprite.Group):
                 if globals.DEBUGGING: 
 
                     hitbox = sprite.hitbox.copy()
-                    debug(f"x: {hitbox.centerx}, y: {hitbox.centery}")
+                    debug(f"x: {hitbox.bottom}, y: {hitbox.centery}")
                     hitbox.x -= offset
 
 

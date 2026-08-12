@@ -17,10 +17,10 @@ def set_screen_mode(main: Main):
     Parameters: 
     - main: The main main of the mains just pass the main object"""
 
-    if globals.DEBUGGING:
-        flags = pygame.FULLSCREEN | pygame.SCALED
-    else:
-        flags = pygame.FULLSCREEN | pygame.SCALED
+    # if globals.DEBUGGING:
+    #     flags = pygame.FULLSCREEN | pygame.SCALED
+    # else:
+    flags = pygame.FULLSCREEN | pygame.SCALED
 
     
     
@@ -66,7 +66,7 @@ class Main:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_F3:
                         globals.DEBUGGING = not globals.DEBUGGING
-                        set_screen_mode(self)
+                        # set_screen_mode(self)
 
             # Reset the debug y offset for each cycle 
             debug.y_offset = 0 
