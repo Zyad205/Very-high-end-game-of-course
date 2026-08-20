@@ -1,8 +1,7 @@
-# Arts used by https://0x72.itch.io/16x16-industrial-tileset
-# Background used by https://free-game-assets.itch.io/free-city-backgrounds-pixel-art
-# https://styloo.itch.io/pixel-grass-and-flowers
-# https://arks.itch.io/witchcraft-spritesheet
-# https://pixelfrog-assets.itch.io/pixel-adventure-1
+# https://lucky-loops.itch.io/character-satyr dark red witch cc-o
+# https://0x72.itch.io/16x16-industrial-tileset Main character and Arts cc-o
+# https://free-game-assets.itch.io/free-city-backgrounds-pixel-art Background cc-o
+# https://styloo.itch.io/pixel-grass-and-flowers BFX cc-o
 
 import pygame
 import debug
