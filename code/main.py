@@ -29,7 +29,6 @@ def set_screen_mode(main: Main):
     main.screen = pygame.display.set_mode(main.screen_size, flags)
 
 
-
 class Main:
     def __init__(self):
         # Initialize pygame
@@ -41,6 +40,7 @@ class Main:
         # Creates the main window
         set_screen_mode(self)
 
+        self.my_image = pygame.image.load(VIRTUALGUY_PATHS["idle"]+"\\1.png").convert_alpha()
         pygame.display.set_caption("Very high end game")
 
         self.level = Level(MAPS_PATHS[0], BG_PATH)

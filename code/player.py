@@ -85,9 +85,6 @@ class Player(pygame.sprite.Sprite):
             "hit": Timer(200)
         }
 
-        # Dis is america
-        self.temp = 0
-        self.temp2 = 0
     
     def update_timers(self):
         """Updates all timers"""
@@ -103,12 +100,22 @@ class Player(pygame.sprite.Sprite):
             self.animation_controller.image,
             flip_x=self.direction,
             flip_y=False)
-        
+
+
+        # Because pygame need a sprite object to check for collision with a group of sprites not a rect
+        # We copy the hitbox inside the player sprite rect then run the test and after if return its original rect
+
         # Yes we use it don't delete
-        self.old_rect = self.hitbox.copy()
+        self.old_hitbox = self.hitbox.copy()
+        temp_rect = self.rect.copy()
+        self.rect = self.hitbox
 
         self.update_timers()
         self.input()
+
+        self.rect = temp_rect.copy()
+        self.rect.centerx = self.hitbox.centerx
+        self.rect.centery = self.hitbox.centery
             
     def input(self) -> None:
         """Checks for all player related input and calls the movement functions"""
@@ -123,9 +130,6 @@ class Player(pygame.sprite.Sprite):
             input_vector.x -= 1
         if keys[pygame.K_w]:
             input_vector.y = 1
-        if keys[pygame.K_r]:
-            self.temp = 0
-            self.temp2 = 0 
 
         self.movement(input_vector)
 
@@ -139,11 +143,13 @@ class Player(pygame.sprite.Sprite):
         Parameters:
         - Vector (pygame.math.Vector2): The vector taken from input"""
         
+        # Applies movement based on direction of the hit
         if self.rebounce:
                 
             x_speed = 0.7
+
             if self.direction_when_hit:
-                x_speed = -0.7
+                x_speed = -x_speed
 
             vector.x = x_speed
 
@@ -166,8 +172,6 @@ class Player(pygame.sprite.Sprite):
             self.animation_controller.play_animation("idle")
             self.platform_movement()
 
-        self.rect.centerx = self.hitbox.centerx
-
         self.collisions("horizontal")
 
         # Vertical movement
@@ -178,17 +182,16 @@ class Player(pygame.sprite.Sprite):
         self.y_speed += self.gravity
         self.hitbox.y += self.y_speed
 
-        self.rect.centery = self.hitbox.centery
         
         self.collisions("vertical")
         self.semi_collision()
 
         if self.direction:
-            self.attack_hitbox.right = self.rect.right
+            self.attack_hitbox.right = self.hitbox.right
         else:
-            self.attack_hitbox.left = self.rect.left
+            self.attack_hitbox.left = self.hitbox.left
 
-        self.attack_hitbox.bottom = self.rect.bottom
+        self.attack_hitbox.bottom = self.hitbox.bottom
             
     def collisions(self, direction: str):
         """Checks for collisions
@@ -199,45 +202,30 @@ class Player(pygame.sprite.Sprite):
         if direction == "horizontal":
             # World borders first
             # Right
-            if self.rect.right > self.X_LIMITS[1]:
-                self.rect.right = self.X_LIMITS[1]
+            if self.hitbox.right > self.X_LIMITS[1]:
+                self.hitbox.right = self.X_LIMITS[1]
             # Left
-            if self.rect.left < self.X_LIMITS[0]:
-                self.rect.left = self.X_LIMITS[0]
-
-            # Because pygame need a sprite object to check for collision with a group of sprites not a rect
-            # We copy the hitbox inside the player sprite rect then run the test and after if return its original rect
-
+            if self.hitbox.left < self.X_LIMITS[0]:
+                self.hitbox.left = self.X_LIMITS[0]
 
             # Obstacles
-            self.temp_rect = self.rect.copy()
-            self.rect = self.hitbox.copy()
             sprite = pygame.sprite.spritecollide(self, self.obstacles, False)
             seconds = pygame.time.get_ticks() / 1000
 
             if len(sprite) > 0:
                 sprite = sprite[0]
             else:
-                self.rect = self.temp_rect.copy()
                 return
 
             direction = 1
-            if self.old_rect.x - self.hitbox.x < 0:
+            if self.old_hitbox.x - self.hitbox.x < 0:
                 direction = 0
 
             if direction: # Going right
                 self.hitbox.left = sprite.rect.right
+
             else: # Going left
                 self.hitbox.right = sprite.rect.left 
-                if self.rebounce:   self.temp = f"Shabang: {seconds}"
-
-            self.rect = self.hitbox.copy()
-            sprite = pygame.sprite.spritecollide(self, self.obstacles, False)
-            if len(sprite) > 0:
-                self.temp2 = f"Still colliding: {seconds}"
-
-            self.rect = self.temp_rect.copy()
-            self.rect.centerx = self.hitbox.centerx
 
         elif direction == "vertical":
             landed = False
@@ -247,10 +235,7 @@ class Player(pygame.sprite.Sprite):
                 self.hitbox.bottom = self.Y_LIMIT
                 landed = True
 
-            # Collisions with platforms
-            self.temp_rect = self.rect.copy()
-            self.rect = self.hitbox.copy()
-            
+            # Collisions with platforms            
             sprite = pygame.sprite.spritecollide(self, self.obstacles, False)
 
             if len(sprite) > 0: # Makes sure a collision was made
@@ -279,8 +264,6 @@ class Player(pygame.sprite.Sprite):
                 if self.rebounce:
                     self.y_speed = -12
                     
-            self.rect = self.temp_rect.copy()
-            self.rect.centery = self.hitbox.centery
 
     def semi_collision(self):
         """Checks for collisions"""
@@ -288,8 +271,6 @@ class Player(pygame.sprite.Sprite):
         landed = False
         # Collisions with platforms
 
-        temp_rect = self.rect.copy()
-        self.rect = self.hitbox.copy()
         sprite = pygame.sprite.spritecollide(self, self.semi_obstacles, False)
         if len(sprite) > 0: # Makes sure a collision was made
             if self.platform_on in sprite:
@@ -297,19 +278,16 @@ class Player(pygame.sprite.Sprite):
             else:
                 sprite = sprite[0]
             
-            self.rect = temp_rect.copy()
-
             # To make sure the player is falling and also on top of the platform not started falling while 
             # he was under it doesn't make sense while i'm writing it But without it 
             if self.y_speed > 0: # Falling
-                if self.old_rect.bottom <= sprite.rect.top: 
-                    self.rect.bottom = sprite.rect.top
+                if self.old_hitbox.bottom <= sprite.rect.top: 
+                    self.hitbox.bottom = sprite.rect.top
                     landed = True
                     
                     self.set_semi_platform(sprite)
 
         else:
-            self.rect = temp_rect.copy()
             self.set_semi_platform(None)
 
 
@@ -334,17 +312,17 @@ class Player(pygame.sprite.Sprite):
         
         if self.platform_on != sprite:
             self.platform_on = sprite
-            self.x_offset_platform = self.rect.centerx - sprite.rect.centerx
+            self.x_offset_platform = self.hitbox.centerx - sprite.rect.centerx
         
     def recalculate_semi_platform(self):
         """Recalculates the offset from the platform incase the player moved while on platform"""
         if self.platform_on is not None:
-            self.x_offset_platform = self.rect.centerx - self.platform_on.rect.centerx
+            self.x_offset_platform = self.hitbox.centerx - self.platform_on.rect.centerx
 
     def platform_movement(self):
         """Moves the player with the platform movement"""
         if self.platform_on is not None:
-            self.rect.centerx = self.platform_on.rect.centerx + self.x_offset_platform
+            self.hitbox.centerx = self.platform_on.rect.centerx + self.x_offset_platform
 
     def attack(self):
         """Attacks"""

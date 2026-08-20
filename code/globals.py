@@ -19,13 +19,13 @@ PLAYER_PATHS = {
 
 
 VIRTUALGUY_PATHS = {
-    "idle": SMAIN_DIR + "graphics/enemies/virtualguy/images/idle",
-    "run": SMAIN_DIR + "graphics/enemies/virtualguy/images/run",
-    "hit": SMAIN_DIR + "graphics/enemies/virtualguy/images/hit",
-    "effect_hit": SMAIN_DIR + "graphics/enemies/virtualguy/effects/hit"
+    "idle": SMAIN_DIR + "graphics/enemies/satyr/images/idle",
+    "run": SMAIN_DIR + "graphics/enemies/satyr/images/run",
+    "hit": SMAIN_DIR + "graphics/enemies/satyr/images/dead",
+    "effect_hit": SMAIN_DIR + "graphics/enemies/satyr/effects/hit"
 }
-
-ENEMIES_IMG_MULTI = {"virtualguy": 2}
+BTN_PATH = "graphics/start_btn.png"
+ENEMIES_IMG_MULTI = {"virtualguy": 3}
 
 MAPS_PATHS = [SMAIN_DIR + "maps/main.tmx"]
 BG_PATH = SMAIN_DIR + "graphics/bg.png"

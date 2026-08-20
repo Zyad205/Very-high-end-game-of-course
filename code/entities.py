@@ -2,7 +2,7 @@ import pygame
 from globals import *
 from engine import *
 from math import hypot
-from debug import debug
+from debug import *
 
 def is_close(object_one, object_two, distance: int):
     """Checks if two rect are close or not
@@ -55,6 +55,15 @@ class VirtualGuy(pygame.sprite.Sprite):
         self.image = self.animation_controller.image
         self.rect = self.image.get_rect(center=(920, 700))
 
+        # Hitboxes
+        self.hitbox = self.rect.copy()
+        self.hitbox = self.hitbox.inflate(-40, -40)
+        self.hitbox.center = self.rect.center
+        add_to_debug_list("e", self.rect.width)
+        add_to_debug_list("x", self.hitbox.width)
+        add_to_debug_list("y", self.hitbox.height)
+
+
         # Y movement related attributes
         self.y_speed = 0
         self.gravity = 1
@@ -92,15 +101,21 @@ class VirtualGuy(pygame.sprite.Sprite):
             self.animation_controller.image,
             flip_x=self.direction,
             flip_y=False)
-        
         # Updates timers
         self.update_timers()
 
-        
-        # Checks if the player is close
-        close = is_close(self.rect, self.player.rect, 200)
+        # Because pygame need a sprite object to check for collision with a group of sprites not a rect
+        # We copy the hitbox inside the player sprite rect then run the test and after if return its original rect
 
-        
+
+        self.old_hitbox = self.hitbox.copy()
+        temp_rect = self.rect.copy()
+        self.rect = self.hitbox
+
+        # Checks if the player is close
+        close = is_close(self.hitbox, self.player.hitbox, 200)
+
+        # Adds x speed towards player if near        
         if close:
             self.look_at_player()
         else:
@@ -110,19 +125,24 @@ class VirtualGuy(pygame.sprite.Sprite):
         self.movement()
         self.attack_player()
 
+        self.rect = temp_rect.copy()
+        self.rect.centerx = self.hitbox.centerx
+        self.rect.centery = self.hitbox.centery
+
+
         # Update health bar pos
-        rect = self.rect.copy()
+        rect = self.hitbox.copy()
         rect.y -= 40
         self.health_bar.update_pos(rect.center)
 
     def look_at_player(self):
         """Changes the direction based on the player position"""
 
-        if self.player.rect.centerx - self.rect.centerx > 0: # Player to the right
+        if self.player.hitbox.centerx - self.hitbox.centerx > 0: # Player to the right
             self.direction = 0
             self.x_speed = 1
 
-        elif self.player.rect.centerx - self.rect.centerx < 0: # Player to the left
+        elif self.player.hitbox.centerx - self.hitbox.centerx < 0: # Player to the left
             self.direction = 1
             self.x_speed = -1
 
@@ -132,43 +152,60 @@ class VirtualGuy(pygame.sprite.Sprite):
         
 
     def movement(self):
+        """Moves self according to player"""
+
+        # Walk towards player if not hit or attacking 
         if self.x_speed != 0 and not self.timers["hit"].active and not self.timers["attack"].active:
-            self.rect.x += self.x_speed
+            self.hitbox.x += self.x_speed
             self.animation_controller.play_animation("run")
             self.collisions("horizontal")
 
+        # Puts speed according to the direction of the hit
         elif self.timers["hit"].active:
             if self.direction_when_hit:
                 x_speed = 1
             else:
                 x_speed = -1
 
-            self.rect.x += x_speed
+            self.hitbox.x += x_speed
             self.collisions("horizontal")
 
 
         self.y_speed += self.gravity
-        self.rect.y += self.y_speed 
+        self.hitbox.y += self.y_speed 
         self.collisions("vertical")
     
     def collisions(self, direction):
+        """Checks for the collisions after each axis movement
+        
+        Parameters:
+        - Direction (str): The direction
+        """
+        
         if direction == "horizontal":
-            sprite = pygame.sprite.spritecollide(self, self.obstacles, False)
-            if len(sprite) > 0:
+            sprite = pygame.sprite.spritecollide(self, self.obstacles, False) 
+            if len(sprite) > 0: # Makes sure a collision is made
                 sprite = sprite[0]
             else:
                 return
             
-            if self.direction: # Going right
-                self.rect.left = sprite.rect.right
+            direction = self.direction
+
+            # Since when hit the character's back is what hits the wall the 
+            # direction is reversed
+            if self.timers['hit'].active:
+                direction = not direction
+
+            if direction: # Going right
+                self.hitbox.left = sprite.rect.right
             else: # Going left
-                self.rect.right = sprite.rect.left
+                self.hitbox.right = sprite.rect.left
 
         if direction == "vertical":
             landed = False
             # Main land
-            if self.rect.bottom > self.Y_LIMIT:
-                self.rect.bottom = self.Y_LIMIT
+            if self.hitbox.bottom > self.Y_LIMIT:
+                self.hitbox.bottom = self.Y_LIMIT
                 landed = True
 
 
@@ -178,10 +215,10 @@ class VirtualGuy(pygame.sprite.Sprite):
                 sprite = sprite[0]
 
                 if self.y_speed > 0: # Falling
-                    self.rect.bottom = sprite.rect.top
+                    self.hitbox.bottom = sprite.rect.top
                     landed = True
                 else: # Jumping
-                    self.rect.top = sprite.rect.bottom
+                    self.hitbox.top = sprite.rect.bottom
                     self.y_speed = 0
 
             if landed: # Landing effects
@@ -190,7 +227,10 @@ class VirtualGuy(pygame.sprite.Sprite):
                 self.y_speed = 0
                 self.can_jump = True
 
-    def get_hit(self, damage):
+    def get_hit(self, damage: int = 1):
+        """Connected as a signal to get hit
+        Parameters:
+        - Damage (int): The damage as number to be dealt to self"""
         self.animation_controller.play_animation("hit", 1)
         self.timers["hit"].activate()
         self.health -= damage
@@ -205,6 +245,7 @@ class VirtualGuy(pygame.sprite.Sprite):
         self.y_speed = -6
 
     def attack_player(self):
+        """Probably enemy will change and will get an attack animation and a attack hitbox"""
         if is_close(self.player.rect, self.rect, 30):
             if not self.timers["attack"].active:
 
@@ -236,12 +277,12 @@ class VirtualGuy(pygame.sprite.Sprite):
         - X_offset (int): The x_offset from the map drawing"""
         for effect in self.active_effects:
             the_effect = self.effects[effect]
-            rect = self.rect.copy()
+            rect = self.hitbox.copy()
             rect.x -= x_offset
 
             if effect == "hit":
                 rect = self.rect.copy()
-                rect.y -= 5
+                rect.y -= 30
                 rect.x -= x_offset
                 if self.direction_when_hit:
                     rect = rect.bottomright

@@ -7,6 +7,8 @@ from obstacles import *
 from entities import *
 from random import randint
 from signals import *
+from button import Button
+from debug import print_debug_list
 
 def has_method(o, name: str):
     """Checks if an object has a method
@@ -46,6 +48,8 @@ class Level:
 
         # The x_offset for the map drawing
         self.offset = 0
+        self.image = pygame.image.load(BTN_PATH)
+        self.button = Button(1800, 20, self.image, 0.2)
 
     def setup_map(self, tmx_map):
         """Loads the tmx map
@@ -114,7 +118,6 @@ class Level:
         
         Parameters:
         - Screen (pygame.Surface): The main display"""
-
         self.screen.blit(self.background, (0,0))
 
         self.semi_obstacles_sprites.update()
@@ -123,9 +126,9 @@ class Level:
         self.calculate_camera()
         self.visible_sprites.draw(screen, self.offset)
 
-        debug(f"rebounce: {self.player.rebounce}")
-        debug(f"Temp: {self.player.temp}")
-        debug(f"Still: {self.player.temp2}")
+        self.button.draw(screen)
+        print_debug_list()
+        # screen.blit(self.image, (1200,20))
 
 
     def calculate_camera(self):
@@ -180,7 +183,7 @@ class VisibleSprites(pygame.sprite.Group):
                 sprite.draw_effects(offset)
 
                 width = sprite.image.get_width()
-                width = 42 - width
+                width = 96 - width
                 width = int(width / 2)
 
                 rect = sprite.rect.copy()
@@ -190,9 +193,12 @@ class VisibleSprites(pygame.sprite.Group):
                 sprite.draw_bars(offset)
 
                 if globals.DEBUGGING:
-                    hitbox = sprite.rect.copy()
+                    hitbox = sprite.hitbox.copy()
                     hitbox.x -= offset
                     pygame.draw.rect(screen, "red", hitbox, 2)
+                    hitbox = sprite.rect.copy()
+                    hitbox.x -= offset
+                    pygame.draw.rect(screen, "green", hitbox, 2)
                 
 
             else:
