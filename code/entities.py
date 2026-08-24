@@ -56,12 +56,10 @@ class VirtualGuy(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center=(920, 700))
 
         # Hitboxes
-        self.hitbox = self.rect.copy()
-        self.hitbox = self.hitbox.inflate(-40, -40)
+        self.hitbox = pygame.Rect(*self.rect.topleft, ENEMY_HITBOX_SIZE[0], ENEMY_HITBOX_SIZE[1])
+
         self.hitbox.center = self.rect.center
-        add_to_debug_list("e", self.rect.width)
-        add_to_debug_list("x", self.hitbox.width)
-        add_to_debug_list("y", self.hitbox.height)
+
 
 
         # Y movement related attributes

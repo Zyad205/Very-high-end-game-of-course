@@ -1,7 +1,7 @@
 import pygame
 from engine import *
 from globals import *
-from debug import debug
+from debug import *
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, groups, obstacles, semi_obstacles, attack_signal, x_limits=MAP_SIZE):
@@ -32,10 +32,12 @@ class Player(pygame.sprite.Sprite):
         self.rect.midbottom = (400, 720)
 
         # Hitboxes
-        self.hitbox = self.rect.copy()
-        self.hitbox = self.hitbox.inflate(-10, 0)
+        self.hitbox = pygame.Rect(*self.rect.topleft, PLAYER_HITBOX_SIZE[0], PLAYER_HITBOX_SIZE[1])
+
         self.hitbox.center = self.rect.center
-        self.attack_hitbox = self.rect.inflate(35, 0)
+        self.attack_hitbox = pygame.Rect(*self.rect.topleft, PLAYER_ATTACK_HITBOX_SIZE[0], PLAYER_ATTACK_HITBOX_SIZE[1])
+        self.attack_hitbox.center = self.rect.center
+        
 
         # Obstacles
         self.obstacles = obstacles

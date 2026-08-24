@@ -8,36 +8,17 @@ import debug
 from globals import *
 import globals 
 from level import Level
-               
-
-def set_screen_mode(main: Main):
-    """Creates the screen or changes it's attributes depending on the debugging value
-    
-    Parameters: 
-    - main: The main main of the mains just pass the main object"""
-
-    # if globals.DEBUGGING:
-    #     flags = pygame.FULLSCREEN | pygame.SCALED
-    # else:
-    flags = pygame.FULLSCREEN | pygame.SCALED
-
-    
-    
-
-    # Screen manipulation
-    main.screen = pygame.display.set_mode(main.screen_size, flags)
-
 
 class Main:
     def __init__(self):
         # Initialize pygame
         pygame.init()
-
         
         self.screen_size = MAP_SIZE
-        
+
         # Creates the main window
-        set_screen_mode(self)
+        flags = pygame.FULLSCREEN | pygame.SCALED
+        self.screen = pygame.display.set_mode(self.screen_size, flags)
 
         self.my_image = pygame.image.load(VIRTUALGUY_PATHS["idle"]+"\\1.png").convert_alpha()
         pygame.display.set_caption("Very high end game")

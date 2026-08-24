@@ -25,13 +25,24 @@ VIRTUALGUY_PATHS = {
     "effect_hit": SMAIN_DIR + "graphics/enemies/satyr/effects/hit"
 }
 BTN_PATH = "graphics/start_btn.png"
-ENEMIES_IMG_MULTI = {"virtualguy": 3}
 
-MAPS_PATHS = [SMAIN_DIR + "maps/main.tmx"]
-BG_PATH = SMAIN_DIR + "graphics/bg.png"
+# ENEMY
+ENEMIES_IMG_MULTI = {"virtualguy": 3}
+ENEMY_HITBOX_SIZE = (56, 56)
+ENEMY_DRAW_OFFSET = {
+    "idle": (0, 5),
+    "attack": []
+}
+
 # PLAYER
 PLAYER_IMG_MULTI = 3
 PLAYER_EFFECTS_MULTI = 4
+PLAYER_HITBOX_SIZE = (32, 42)
+PLAYER_ATTACK_HITBOX_SIZE = (77, 42)
+
+
+MAPS_PATHS = [SMAIN_DIR + "maps/main.tmx"]
+BG_PATH = SMAIN_DIR + "graphics/bg.png"
 
 # SIZES
 TILE_SIZE = 64

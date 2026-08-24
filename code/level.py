@@ -182,23 +182,25 @@ class VisibleSprites(pygame.sprite.Group):
             elif sprite.type == "enemy":
                 sprite.draw_effects(offset)
 
-                width = sprite.image.get_width()
-                width = 96 - width
-                width = int(width / 2)
-
-                rect = sprite.rect.copy()
+                image_rect = sprite.image.get_rect()
+                debug(f"width: {image_rect.width}")
+                debug(f"height: {image_rect.height}")
+                rect = sprite.hitbox.copy()
                 rect.x -= offset
-
-                screen.blit(sprite.image, (rect.x + width, rect.y))
+                offsets = ENEMY_DRAW_OFFSET[sprite.animation_controller.current_animation]
+                image_rect.midbottom = rect.midbottom
+                image_rect.x += offsets[0] * ENEMIES_IMG_MULTI['virtualguy']
+                image_rect.y += offsets[1] * ENEMIES_IMG_MULTI['virtualguy']
+                screen.blit(sprite.image, (image_rect.x, image_rect.y))
                 sprite.draw_bars(offset)
 
                 if globals.DEBUGGING:
                     hitbox = sprite.hitbox.copy()
                     hitbox.x -= offset
                     pygame.draw.rect(screen, "red", hitbox, 2)
-                    hitbox = sprite.rect.copy()
-                    hitbox.x -= offset
-                    pygame.draw.rect(screen, "green", hitbox, 2)
+                    
+
+                    pygame.draw.rect(screen, "green", image_rect, 2)
                 
 
             else:
