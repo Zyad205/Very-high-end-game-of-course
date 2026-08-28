@@ -31,7 +31,8 @@ ENEMIES_IMG_MULTI = {"virtualguy": 3}
 ENEMY_HITBOX_SIZE = (56, 56)
 ENEMY_DRAW_OFFSET = {
     "idle": (0, 5),
-    "attack": []
+    "run": (0,5),
+    "hit": (0, 5)
 }
 
 # PLAYER

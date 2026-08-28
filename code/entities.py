@@ -53,7 +53,7 @@ class VirtualGuy(pygame.sprite.Sprite):
         self.attack_signal = attack_signal
 
         self.image = self.animation_controller.image
-        self.rect = self.image.get_rect(center=(920, 700))
+        self.rect = self.image.get_rect(center=(720, 590))
 
         # Hitboxes
         self.hitbox = pygame.Rect(*self.rect.topleft, ENEMY_HITBOX_SIZE[0], ENEMY_HITBOX_SIZE[1])
