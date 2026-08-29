@@ -1,5 +1,6 @@
 import pygame
-from os import walk
+from os import walk, listdir
+from os.path import join
 
 
 class Animation:
@@ -38,16 +39,14 @@ class Animation:
         Parameters:
         - Path (str): The path to the folder
         - Img_multi (int): A multiplier for the images size"""
-
-        for _, __, images in walk(path): # Get a list of the images
-            for image_path in images: # Iterate through the images
-                # Make the full path
-                full_path = path + "/" + image_path
-                image = pygame.image.load(full_path).convert_alpha()
-                if img_multi >= 1 and isinstance(img_multi, int):
-                    image = pygame.transform.scale_by(image, img_multi)
-                # Append
-                self.images.append(image)
+        for image_path in sorted(listdir(path)): # Iterate through the images
+            # Make the full path
+            full_path = path / image_path
+            image = pygame.image.load(full_path).convert_alpha()
+            if img_multi >= 1 and isinstance(img_multi, int):
+                image = pygame.transform.scale_by(image, img_multi)
+            # Append
+            self.images.append(image)
         if len(self.images) == 0:
             error = f"Couldn't load images from {path}"
             raise RuntimeError(error)

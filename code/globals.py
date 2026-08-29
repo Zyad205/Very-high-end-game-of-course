@@ -1,30 +1,35 @@
 from sys import argv
-from os.path import dirname
+from os.path import dirname, join
+import pathlib
 
 DEBUGGING = False
 
 # PATHS
 MAIN_DIR = dirname(dirname(argv[0]))
-SMAIN_DIR = MAIN_DIR + "/"
+MAIN_DIR = pathlib.Path(MAIN_DIR)
+
+PLAYER_PATH_I = MAIN_DIR / "graphics" / "player" / "images"
+PLAYER_PATH_E = MAIN_DIR / "graphics" / "player" / "effects"
 
 PLAYER_PATHS = {
-    "idle": SMAIN_DIR + "graphics/player/images/idle",
-    "run": SMAIN_DIR + "graphics/player/images/run",
-    "land": SMAIN_DIR + "graphics/player/images/land",
-    "attack": SMAIN_DIR + "graphics/player/images/attack",
-    "hit": SMAIN_DIR + "graphics/player/images/hit",
-    "effect_land": SMAIN_DIR + "graphics/player/effects/land",
-    "effect_attack": SMAIN_DIR + "graphics/player/effects/attack"}
+    "idle": PLAYER_PATH_I / "idle",
+    "run": PLAYER_PATH_I / "run",
+    "land": PLAYER_PATH_I / "land",
+    "attack": PLAYER_PATH_I / "attack",
+    "hit": PLAYER_PATH_I / "hit",
+    "effect_land": PLAYER_PATH_E / "land",
+    "effect_attack": PLAYER_PATH_E / "attack"}
 
-
+SATYR_PATH_I = MAIN_DIR / "graphics" / "enemies" / "satyr" / "images"
+SATYR_PATH_E = MAIN_DIR / "graphics" / "enemies" / "satyr" / "effects"
 
 VIRTUALGUY_PATHS = {
-    "idle": SMAIN_DIR + "graphics/enemies/satyr/images/idle",
-    "run": SMAIN_DIR + "graphics/enemies/satyr/images/run",
-    "hit": SMAIN_DIR + "graphics/enemies/satyr/images/dead",
-    "effect_hit": SMAIN_DIR + "graphics/enemies/satyr/effects/hit"
+    "idle": SATYR_PATH_I / "idle",
+    "run": SATYR_PATH_I / "run",
+    "hit": SATYR_PATH_I / "dead",
+    "effect_hit": SATYR_PATH_E / "hit"
 }
-BTN_PATH = "graphics/start_btn.png"
+BTN_PATH = MAIN_DIR / "graphics" / "start_btn.png"
 
 # ENEMY
 ENEMIES_IMG_MULTI = {"virtualguy": 3}
@@ -42,8 +47,9 @@ PLAYER_HITBOX_SIZE = (32, 42)
 PLAYER_ATTACK_HITBOX_SIZE = (77, 42)
 
 
-MAPS_PATHS = [SMAIN_DIR + "maps/main.tmx"]
-BG_PATH = SMAIN_DIR + "graphics/bg.png"
+MAPS_PATHS = [MAIN_DIR / "maps" / "main.tmx"]
+
+BG_PATH = MAIN_DIR / "graphics" / "bg.png"
 
 # SIZES
 TILE_SIZE = 64

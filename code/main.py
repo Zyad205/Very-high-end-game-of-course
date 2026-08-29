@@ -20,7 +20,7 @@ class Main:
         flags = pygame.FULLSCREEN | pygame.SCALED
         self.screen = pygame.display.set_mode(self.screen_size, flags)
 
-        self.my_image = pygame.image.load(VIRTUALGUY_PATHS["idle"]+"\\1.png").convert_alpha()
+        # self.my_image = pygame.image.load(VIRTUALGUY_PATHS["idle"]+"\\1.png").convert_alpha()
         pygame.display.set_caption("Very high end game")
 
         self.level = Level(MAPS_PATHS[0], BG_PATH)
