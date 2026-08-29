@@ -78,7 +78,6 @@ class AnimationController:
     def __init__(
             self,
             animations: dict[str, Animation],
-            play_once_names: list[str],
             first_animation: str):
         """The init func
         
@@ -90,7 +89,7 @@ class AnimationController:
 
 
         self.animations = animations
-        self.play_once_names = play_once_names
+        self.get_play_once_animations()
         self.current_animation = first_animation
         self.animation = animations[first_animation]
         self.play_animation(first_animation)
@@ -99,6 +98,12 @@ class AnimationController:
 
         self.image = self.animation.image
 
+
+    def get_play_once_animations(self):
+        self.play_once_names = []
+        for name, animation in self.animations.items():
+            if animation.play_once:
+                self.play_once_names.append(name)
 
     def play_animation(self, animation: str, override: bool = False) -> None:
         """Plays a new animation if it's not currently playing and no play

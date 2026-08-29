@@ -107,7 +107,7 @@ class Level:
             self.signals.player_attacking,
             [0, 3000])
         
-        self.enemy = VirtualGuy(
+        self.enemy = Satry(
             self.visible_sprites,
             self.obstacle_sprites,
             self.player, 
@@ -187,10 +187,7 @@ class VisibleSprites(pygame.sprite.Group):
                 debug(f"height: {image_rect.height}")
                 rect = sprite.hitbox.copy()
                 rect.x -= offset
-                offsets = ENEMY_DRAW_OFFSET[sprite.animation_controller.current_animation]
                 image_rect.midbottom = rect.midbottom
-                image_rect.x += offsets[0] * ENEMIES_IMG_MULTI['virtualguy']
-                image_rect.y += offsets[1] * ENEMIES_IMG_MULTI['virtualguy']
                 screen.blit(sprite.image, (image_rect.x, image_rect.y))
                 sprite.draw_bars(offset)
 

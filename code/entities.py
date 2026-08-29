@@ -17,7 +17,7 @@ def is_close(object_one, object_two, distance: int):
 
     return hypot(object_two.centerx-object_one.centerx, object_two.centery-object_one.centery) < float(distance)
 
-class VirtualGuy(pygame.sprite.Sprite):
+class Satry(pygame.sprite.Sprite):
     def __init__(self, groups, obstacles, player, attack_signal):
         
         # The father init function
@@ -26,24 +26,29 @@ class VirtualGuy(pygame.sprite.Sprite):
         # Animations
         self.animations = {
             "idle": Animation(
-                VIRTUALGUY_PATHS["idle"],
+                SATYR_PATHS["idle"],
                 0.12,
-                ENEMIES_IMG_MULTI["virtualguy"]),
+                ENEMIES_IMG_MULTI["satyr"]),
             "run": Animation(
-                VIRTUALGUY_PATHS["run"],
+                SATYR_PATHS["run"],
                 0.15,
-                ENEMIES_IMG_MULTI["virtualguy"]),
+                ENEMIES_IMG_MULTI["satyr"]),
             "hit": Animation(
-                VIRTUALGUY_PATHS["hit"],
+                SATYR_PATHS["hit"],
                 0.2,
-                ENEMIES_IMG_MULTI["virtualguy"],
-                True
-            )}
+                ENEMIES_IMG_MULTI["satyr"],
+                True),
+            "melee": Animation(
+                SATYR_PATHS["melee"],
+                0.4,
+                ENEMIES_IMG_MULTI["satyr"],
+                True)
+            }
 
         # Animation controller
-        self.animation_controller = AnimationController(self.animations, ["hit"], "idle")
+        self.animation_controller = AnimationController(self.animations, "idle")
 
-        self.effects = {"hit": Effect(VIRTUALGUY_PATHS["effect_hit"], 0.3, 1)}
+        self.effects = {"hit": Effect(SATYR_PATHS["effect_hit"], 0.3, 1)}
         self.active_effects = []
 
         # Attributes
@@ -158,6 +163,7 @@ class VirtualGuy(pygame.sprite.Sprite):
             self.animation_controller.play_animation("run")
             self.collisions("horizontal")
 
+
         # Puts speed according to the direction of the hit
         elif self.timers["hit"].active:
             if self.direction_when_hit:
@@ -168,6 +174,7 @@ class VirtualGuy(pygame.sprite.Sprite):
             self.hitbox.x += x_speed
             self.collisions("horizontal")
 
+        else: self.animation_controller.play_animation("idle")
 
         self.y_speed += self.gravity
         self.hitbox.y += self.y_speed 
@@ -246,7 +253,8 @@ class VirtualGuy(pygame.sprite.Sprite):
         """Probably enemy will change and will get an attack animation and a attack hitbox"""
         if is_close(self.player.rect, self.rect, 30):
             if not self.timers["attack"].active:
-
+                print("attack")
+                self.animation_controller.play_animation("melee", True)
                 self.attack_signal(self.rect)
                 self.timers["attack"].activate()
 

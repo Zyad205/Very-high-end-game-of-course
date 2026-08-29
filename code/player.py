@@ -18,7 +18,6 @@ class Player(pygame.sprite.Sprite):
         
         self.animation_controller = AnimationController(
             self.animations,
-            ["land", "attack", "hit"],
             "idle")
  
         # Effects

@@ -23,16 +23,17 @@ PLAYER_PATHS = {
 SATYR_PATH_I = MAIN_DIR / "graphics" / "enemies" / "satyr" / "images"
 SATYR_PATH_E = MAIN_DIR / "graphics" / "enemies" / "satyr" / "effects"
 
-VIRTUALGUY_PATHS = {
+SATYR_PATHS = {
     "idle": SATYR_PATH_I / "idle",
     "run": SATYR_PATH_I / "run",
-    "hit": SATYR_PATH_I / "dead",
+    "hit": SATYR_PATH_I / "hit",
+    "melee": SATYR_PATH_I / "melee",
     "effect_hit": SATYR_PATH_E / "hit"
 }
 BTN_PATH = MAIN_DIR / "graphics" / "start_btn.png"
 
 # ENEMY
-ENEMIES_IMG_MULTI = {"virtualguy": 3}
+ENEMIES_IMG_MULTI = {"satyr": 3}
 ENEMY_HITBOX_SIZE = (56, 56)
 ENEMY_DRAW_OFFSET = {
     "idle": (0, 5),
