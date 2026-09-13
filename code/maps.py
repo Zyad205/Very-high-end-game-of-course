@@ -9,7 +9,6 @@ from random import randint
 from signals import *
 from button import Button
 from debug import print_debug_list
-from maps import Map
 
 def has_method(o, name: str):
     """Checks if an object has a method
@@ -23,73 +22,103 @@ def has_method(o, name: str):
     return callable(getattr(o, name, None))
 
 
-class GameLoop:
-    def __init__(self):
+class Map:
+    def __init__(self, tmx_map: str, bg_path: str):
         """The init func
 
         Parameters:
         - Tmx_map (str): The path for the map
         - Bg_path (str): The path for the background image"""
 
-        self.screen = pygame.display.get_surface()
-        self.map = Map(MAPS_PATHS[0], BG_PATH)
-        self.active_map = self.map            
+
+        # Groups
+        self.visible_sprites = VisibleSprites()
+        self.obstacle_sprites = pygame.sprite.Group()
+        self.semi_obstacles_sprites = pygame.sprite.Group()
         
+        self.signals = Signals(self)
+        
+        # Setting up the map
+        self.setup_map(tmx_map)
 
-        # The x_offset for the map drawing
-        self.offset = 0
+        
+        # The main background
+        self.background = pygame.image.load(bg_path).convert()
+        self.background = pygame.transform.scale(self.background, MAP_SIZE)
 
-        # States 
-        # running - paused
-        self.state = "running"
 
-        # Pause menu overlay
-        self.grey_overlay = pygame.Surface(MAP_SIZE)
-        self.grey_overlay.fill((50, 50, 50))
-        self.grey_overlay.set_alpha(128)
 
-        # Testing 
-        self.button = Button("Run", 40, 40, "red", "grey", "white")
-
-    def run(self, screen: pygame.Surface):
-        """Called to updates the whole level
+    def setup_map(self, tmx_map):
+        """Loads the tmx map
         
         Parameters:
-        - Screen (pygame.Surface): The main display"""
+        - Tmx_map (str): The path for the map"""
+        tmx_map = load_pygame(tmx_map)
+        
+        self.width = tmx_map.width * TILE_SIZE
 
-        if self.state == "running":
-            self.active_map.update()
-            self.draw()
-
-        elif self.state == "paused":
-            self.draw()
-            self.print_pause_menu()
-            for event in pygame.event.get():
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if self.button.handle_event(event):
-                        self.state = "running"
+        # For the background textures
+        floor = tmx_map.get_layer_by_name("bg_tex")
+        groups = [self.visible_sprites]
+        # Iterating through them
+        for tile in floor.tiles():
+            Tile(groups, (tile[0] * TILE_SIZE, tile[1] * TILE_SIZE + 16), tile[2], "shades")
 
 
+        # Objects
+        floor = tmx_map.get_layer_by_name("objects")
+        groups = [self.visible_sprites, self.semi_obstacles_sprites]
+        # Drawing them
+        for obj in floor:
+            SemiCollidablePlatform(
+                groups,
+                (obj.x, obj.y + 16 - obj.height),
+                obj.image,
+                "semi_obstacles",
+                300,
+                randint(400, 1000) / 500)
+            
+        # Create PLayer and enemies
+        self.create_entities()
+        
+        # For the foreground textures
+        floor = tmx_map.get_layer_by_name("fg_tex")
+        groups = [self.visible_sprites]
+        # Iterating through them
+        for tile in floor.tiles():
+            Tile(groups, (tile[0] * TILE_SIZE, tile[1] * TILE_SIZE + 16), tile[2], "shades")
 
+        # For the obstacles
+        floor = tmx_map.get_layer_by_name("main")
+        groups = [self.visible_sprites, self.obstacle_sprites]
+        # Iterating through them
+        for tile in floor.tiles():
+            Tile(groups, (tile[0] * TILE_SIZE, tile[1] * TILE_SIZE + 16), tile[2], "obstacle")
+        
+    def create_entities(self):
+        # Creates the player and enemies
+        self.player = Player(
+            [self.visible_sprites],
+            self.obstacle_sprites,
+            self.semi_obstacles_sprites,
+            self.signals.player_attacking,
+            [0, 3000])
+        
+        self.enemy = Satry(
+            self.visible_sprites,
+            self.obstacle_sprites,
+            self.player, 
+            self.signals.virtual_guy_attacking)
 
-    def calculate_camera(self):
-        # Camera
-        x = self.active_map.player.rect.centerx
-        half_the_map = MAP_SIZE[0] / 2
-        if x > half_the_map and self.active_map.width - half_the_map > x:
-            self.offset = x - half_the_map
+    def update(self):
+        """Called to updates the whole level"""
+        self.semi_obstacles_sprites.update()
+        self.visible_sprites.update()
+
     
-    def print_pause_menu(self):
-        self.screen.blit(self.grey_overlay, (0, 0))
-        mouse_pos = pygame.mouse.get_pos()
-        self.button.check_hover(mouse_pos)
-        self.button.draw(self.screen)
-
-    def draw(self):
-        self.calculate_camera()
-        self.active_map.draw(self.screen, self.offset)
-        debug(self.state)
-        print_debug_list()
+    def draw(self, screen, offset):
+        screen.blit(self.background, (0, 0))
+        self.visible_sprites.draw(screen, offset)
 
 
 
