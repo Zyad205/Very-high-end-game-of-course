@@ -7,7 +7,8 @@ import pygame
 import debug
 from globals import *
 import globals 
-from level import Level
+from game_loop import GameLoop
+import time
 
 class Main:
     def __init__(self):
@@ -23,7 +24,7 @@ class Main:
         # self.my_image = pygame.image.load(VIRTUALGUY_PATHS["idle"]+"\\1.png").convert_alpha()
         pygame.display.set_caption("Very high end game")
 
-        self.level = Level(MAPS_PATHS[0], BG_PATH)
+        self.level = GameLoop(MAPS_PATHS[0], BG_PATH)
         self.offset = 0
         # Clock
         self.clock = pygame.Clock()
@@ -41,13 +42,22 @@ class Main:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_q:
                         pygame.quit()
+                        time.sleep(0.1)
                         exit("User closed")
+                        # SystemExit()
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_F3:
                         globals.DEBUGGING = not globals.DEBUGGING
                         # set_screen_mode(self)
 
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_F4:
+                        self.level.state = "paused"
+
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_F5:
+                        self.level.state = "running"
             # Reset the debug y offset for each cycle 
             debug.y_offset = 0 
             self.level.run(self.screen)

@@ -1,5 +1,5 @@
 from sys import argv
-from os.path import dirname, join
+from os.path import dirname
 import pathlib
 
 DEBUGGING = False
@@ -28,7 +28,8 @@ SATYR_PATHS = {
     "run": SATYR_PATH_I / "run",
     "hit": SATYR_PATH_I / "hit",
     "melee": SATYR_PATH_I / "melee",
-    "effect_hit": SATYR_PATH_E / "hit"
+    "effect_hit": SATYR_PATH_E / "hit",
+    "land": SATYR_PATH_I / "land"
 }
 BTN_PATH = MAIN_DIR / "graphics" / "start_btn.png"
 
@@ -55,3 +56,5 @@ BG_PATH = MAIN_DIR / "graphics" / "bg.png"
 # SIZES
 TILE_SIZE = 64
 MAP_SIZE = (1280, 720)
+
+BOLD_PIXEL_FONT = MAIN_DIR / "assets" / "fonts" / "BoldPixels.ttf"

@@ -105,14 +105,17 @@ class AnimationController:
             if animation.play_once:
                 self.play_once_names.append(name)
 
-    def play_animation(self, animation: str, override: bool = False) -> None:
+    def play_animation(self, animation: str, override: bool = False) -> bool:
         """Plays a new animation if it's not currently playing and no play
         once animation is playing
 
         Parameters:
         - Animation (str): The name of the new animation
         - Override (bool): Should override a currently playing play once
-        animation"""
+        animation
+        
+        Return:
+        - Bool: Returns true if the animation changed, false if not"""
         if self.current_animation == animation:
             return False
         
@@ -126,7 +129,8 @@ class AnimationController:
                                       
 
     def change_animation(self, new_animation: str) -> None:
-        """Changes the current animation
+        """Changes the current animation, internal method not meant to be used outside internal scope
+        
         Parameters:
         - New_animation (str): The name of the new animation"""
         

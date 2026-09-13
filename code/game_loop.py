@@ -4,7 +4,7 @@ from player import *
 from pytmx.util_pygame import load_pygame
 from pytmx import TiledMap
 from obstacles import *
-from entities import *
+from enemies import *
 from random import randint
 from signals import *
 from button import Button
@@ -22,7 +22,7 @@ def has_method(o, name: str):
     return callable(getattr(o, name, None))
 
 
-class Level:
+class GameLoop:
     def __init__(self, tmx_map: str, bg_path: str):
         """The init func
 
@@ -48,8 +48,18 @@ class Level:
 
         # The x_offset for the map drawing
         self.offset = 0
-        self.image = pygame.image.load(BTN_PATH)
-        self.button = Button(1800, 20, self.image, 0.2)
+
+        # States 
+        # running - paused
+        self.state = "running"
+
+        # Yes
+        self.grey_overlay = pygame.Surface(MAP_SIZE)
+        self.grey_overlay.fill((50, 50, 50))
+        self.grey_overlay.set_alpha(128)
+
+        # Testing 
+        self.button = Button("click me", 40, 40, 40, 40, "red", "grey", "white")
 
     def setup_map(self, tmx_map):
         """Loads the tmx map
@@ -120,15 +130,14 @@ class Level:
         - Screen (pygame.Surface): The main display"""
         self.screen.blit(self.background, (0,0))
 
-        self.semi_obstacles_sprites.update()
-        self.visible_sprites.update()
+        if self.state == "running":
+            self.semi_obstacles_sprites.update()
+            self.visible_sprites.update()
+            self.draw(screen)
+        elif self.state == "paused":
+            self.draw(screen)
+            self.print_pause_menu()
 
-        self.calculate_camera()
-        self.visible_sprites.draw(screen, self.offset)
-
-        self.button.draw(screen)
-        print_debug_list()
-        # screen.blit(self.image, (1200,20))
 
 
     def calculate_camera(self):
@@ -137,6 +146,19 @@ class Level:
         half_the_map = MAP_SIZE[0] / 2
         if x > half_the_map and self.width - half_the_map > x:
             self.offset = x - half_the_map
+    
+    def print_pause_menu(self):
+        self.screen.blit(self.grey_overlay, (0, 0))
+        mouse_pos = pygame.mouse.get_pos()
+        self.button.check_hover(mouse_pos)
+        self.button.draw(self.screen)
+
+    def draw(self, screen):
+        self.calculate_camera()
+        self.visible_sprites.draw(screen, self.offset)
+        debug(self.state)
+        print_debug_list()
+
 
 
 
@@ -197,7 +219,6 @@ class VisibleSprites(pygame.sprite.Group):
                     pygame.draw.rect(screen, "red", hitbox, 2)
                     
 
-                    pygame.draw.rect(screen, "green", image_rect, 2)
                 
 
             else:

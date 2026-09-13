@@ -1,0 +1,251 @@
+import pygame
+from globals import *
+from engine import *
+from math import hypot
+from debug import *
+from entities import CollidableEntity
+
+def is_close(object_one, object_two, distance: int):
+    """Checks if two rect are close or not
+    
+    Parameters:
+    - Object one: The first rectangle
+    - Object two: The second rectangle
+    - Distance (int): The furthest distance that could be between them
+    
+    Returns
+    - Bool: Returns true is they are near false otherwise"""
+
+    return hypot(object_two.centerx-object_one.centerx, object_two.centery-object_one.centery) < float(distance)
+
+class Satry(CollidableEntity):
+    def __init__(self, groups, obstacles, player, attack_signal):
+        
+        # The father init function
+        super().__init__(groups)
+
+        # Animations
+        self.animations = {
+            "idle": Animation(
+                SATYR_PATHS["idle"],
+                0.12,
+                ENEMIES_IMG_MULTI["satyr"]),
+            "run": Animation(
+                SATYR_PATHS["run"],
+                0.15,
+                ENEMIES_IMG_MULTI["satyr"]),
+            "hit": Animation(
+                SATYR_PATHS["hit"],
+                0.2,
+                ENEMIES_IMG_MULTI["satyr"],
+                True),
+            "melee": Animation(
+                SATYR_PATHS["melee"],
+                0.4,
+                ENEMIES_IMG_MULTI["satyr"],
+                True),
+            "land": Animation(
+                SATYR_PATHS["land"],
+                0.4,
+                ENEMIES_IMG_MULTI["satyr"],
+                True)
+
+            }
+
+        # Animation controller
+        self.animation_controller = AnimationController(self.animations, "idle")
+
+        self.effects = {"hit": Effect(SATYR_PATHS["effect_hit"], 0.3, 1)}
+        self.active_effects = []
+
+        # Attributes
+        self.player = player
+        self.obstacles = obstacles
+        self.type = "enemy"
+        self.attack_signal = attack_signal
+
+        self.image = self.animation_controller.image
+        self.rect = self.image.get_rect(center=(720, 590))
+
+        # Hitboxes
+        self.hitbox = pygame.Rect(*self.rect.topleft, ENEMY_HITBOX_SIZE[0], ENEMY_HITBOX_SIZE[1])
+
+        self.hitbox.center = self.rect.center
+
+
+
+        # Y movement related attributes
+        self.y_speed = 0
+        self.gravity = 1
+        self.Y_LIMIT = 720
+        self.can_jump = False
+
+        # 1 - Left, 0 - Right
+        self.direction = 0
+
+        # X speed
+        self.x_speed = 0
+
+        # Hit rebounce
+        self.hit_rebounce = 0
+
+        # Timers
+        self.timers = {"hit": Timer(500), "attack": Timer(300)}
+
+        # Health
+        self.health = 100
+        self.health_bar = StatusBar(
+            100,
+            100,
+            "red",
+            "yellow",
+            "white",
+            2,
+            False,
+            True,
+            80,
+            10,
+            self.rect.center)
+
+    def update(self):
+        """The logic update function"""
+        self.animation_controller.update()
+        
+        self.image = pygame.transform.flip(
+            self.animation_controller.image,
+            flip_x=self.direction,
+            flip_y=False)
+        # Updates timers
+        self.update_timers()
+
+        # Because pygame need a sprite object to check for collision with a group of sprites not a rect
+        # We copy the hitbox inside the player sprite rect then run the test and after if return its original rect
+
+
+        self.old_hitbox = self.hitbox.copy()
+        temp_rect = self.rect.copy()
+        self.rect = self.hitbox
+
+        # Checks if the player is close
+        close = is_close(self.hitbox, self.player.hitbox, 200)
+
+        # Adds x speed towards player if near        
+        if close:
+            self.look_at_player()
+        else:
+            self.x_speed = 0
+            self.animation_controller.play_animation("idle")
+
+        self.movement()
+        self.attack_player()
+
+        self.rect = temp_rect.copy()
+        self.rect.centerx = self.hitbox.centerx
+        self.rect.centery = self.hitbox.centery
+
+
+        # Update health bar pos
+        rect = self.hitbox.copy()
+        rect.y -= 40
+        self.health_bar.update_pos(rect.center)
+
+    def look_at_player(self):
+        """Changes the direction based on the player position"""
+
+        if self.player.hitbox.centerx - self.hitbox.centerx > 0: # Player to the right
+            self.direction = 0
+            self.x_speed = 1
+
+        elif self.player.hitbox.centerx - self.hitbox.centerx < 0: # Player to the left
+            self.direction = 1
+            self.x_speed = -1
+
+        else:
+            self.x_speed = 0 # We are at the player position
+            self.animation_controller.play_animation("idle")
+        
+
+    def movement(self):
+        """Moves self according to player"""
+
+        # Walk towards player if not hit or attacking 
+        if self.x_speed != 0 and not self.timers["hit"].active and not self.timers["attack"].active:
+            self.hitbox.x += self.x_speed
+            self.animation_controller.play_animation("run")
+            self.collisions("horizontal")
+
+
+        # Puts speed according to the direction of the hit
+        elif self.timers["hit"].active:
+            if self.direction_when_hit:
+                x_speed = 1
+            else:
+                x_speed = -1
+
+            self.hitbox.x += x_speed
+            self.collisions("horizontal")
+
+        else: self.animation_controller.play_animation("idle")
+
+        self.y_speed += self.gravity
+        self.hitbox.y += self.y_speed 
+        played_animation = self.collisions("vertical")
+
+        if played_animation == "land":
+            self.animation_controller.play_animation("land")
+
+    def get_hit(self, damage: int = 1):
+        """Connected as a signal to get hit
+        Parameters:
+        - Damage (int): The damage as number to be dealt to self"""
+        self.animation_controller.play_animation("hit", 1)
+        self.timers["hit"].activate()
+        self.health -= damage
+        self.play_effect("hit")
+
+        self.direction_when_hit = self.direction
+
+        # if self.health <= 0:
+        #     self.kill()
+        self.health_bar.update_stat(self.health)
+
+        self.y_speed = -6
+
+    def attack_player(self):
+        """Probably enemy will change and will get an attack animation and a attack hitbox"""
+        if is_close(self.player.rect, self.rect, 30):
+            if not self.timers["attack"].active:
+                self.animation_controller.play_animation("melee", True)
+                self.attack_signal(self.rect)
+                self.timers["attack"].activate()
+
+    def draw_bars(self, x_offset):
+        self.health_bar.draw(x_offset)
+
+    def draw_effects(self, x_offset: int):
+        """Draws all active effects
+
+        Parameters:
+        - X_offset (int): The x_offset from the map drawing"""
+        for effect in self.active_effects:
+            the_effect = self.effects[effect]
+            rect = self.hitbox.copy()
+            rect.x -= x_offset
+
+            if effect == "hit":
+                rect = self.rect.copy()
+                rect.y -= 30
+                rect.x -= x_offset
+                if self.direction_when_hit:
+                    rect = rect.bottomright
+                    flip = True
+                else:
+                    rect = rect.bottomleft
+                    flip = False
+
+                the_effect.draw(rect, flip)
+
+            # Clears the finished effects
+            if not the_effect.playing:
+                self.active_effects.remove(effect)
+

@@ -1,9 +1,12 @@
 import pygame
 import globals
+from globals import BOLD_PIXEL_FONT
 
 pygame.init()
-font = pygame.font.Font(None, 30)
+font = pygame.font.Font(BOLD_PIXEL_FONT, 25)
 y_offset = 0
+x_offset = 0
+
 debug_list = {}
 
 
@@ -29,10 +32,16 @@ def debug(info: str, x: int = 0, y: int = None):
         y_offset += 25
 
 
-    rendered_text = font.render(text, color="WHITE", antialias=False)
+    rendered_text = font.render(text, color="#FFFFFF", antialias=False)
     rect = rendered_text.get_rect(topleft=(x,y))
 
-    pygame.draw.rect(screen, "BLACK", rect)
+    bg_surface = pygame.Surface(rect.size)
+    bg_surface.fill((50, 50, 50))
+    bg_surface.set_alpha(200)
+
+
+    screen.blit(bg_surface, rect)
+    rect.x += 2
     screen.blit(rendered_text, rect)
 
 def add_to_debug_list(name: str, value: str, x: int = 0, y: int= None):
@@ -64,10 +73,18 @@ def print_debug_list():
             y_offset += 25
 
 
-        rendered_text = font.render(text, color="WHITE", antialias=False)
+        rendered_text = font.render(text, color="#FFFFFF", antialias=False)
         rect = rendered_text.get_rect(topleft=(x,y))
 
-        pygame.draw.rect(screen, "BLACK", rect)
+        bg_surface = pygame.Surface(rect.size)
+        bg_surface.fill((50, 50, 50))
+        bg_surface.set_alpha(200)
+
+
+        screen.blit(bg_surface, rect)
+        rect.x += 2
+
         screen.blit(rendered_text, rect)
+
 
     
