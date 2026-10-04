@@ -31,7 +31,6 @@ class GameLoop:
         - Tmx_map (str): The path for the map
         - Bg_path (str): The path for the background image"""
 
-        self.screen = pygame.display.get_surface()
         self.map = Map(MAPS_PATHS[0], BG_PATH)
         self.active_map = self.map            
         
@@ -59,11 +58,11 @@ class GameLoop:
 
         if self.state == "running":
             self.active_map.update()
-            self.draw()
+            self.draw(screen)
 
         elif self.state == "paused":
-            self.draw()
-            self.print_pause_menu()
+            self.draw(screen)
+            self.print_pause_menu(screen)
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if self.button.handle_event(event):
@@ -79,85 +78,14 @@ class GameLoop:
         if x > half_the_map and self.active_map.width - half_the_map > x:
             self.offset = x - half_the_map
     
-    def print_pause_menu(self):
-        self.screen.blit(self.grey_overlay, (0, 0))
-        mouse_pos = pygame.mouse.get_pos()
-        self.button.check_hover(mouse_pos)
-        self.button.draw(self.screen)
-
-    def draw(self):
+    def draw(self, screen):
         self.calculate_camera()
-        self.active_map.draw(self.screen, self.offset)
+        self.active_map.draw(screen, self.offset)
         debug(self.state)
         print_debug_list()
 
-
-
-
-class VisibleSprites(pygame.sprite.Group):
-    def __init__(self):
-        super().__init__()
-        
-
-    def draw(self, screen: pygame.Surface, offset: int):
-        """Draws the whole map and player effects and calculates the x offset
-        
-        Parameters:
-        - Screen (pygame.Surface): The main display
-        - Offset (int): The x_offset for the map drawing"""
-        for sprite in self.sprites():
-            if sprite.type == "player":
-                width = sprite.image.get_width()
-                width = 42 - width
-                width = int(width / 2)
-
-
-                rect = sprite.rect.copy()
-                rect.x -= offset
-
-                screen.blit(sprite.image, (rect.x + width, rect.y))
-                sprite.draw_effects(offset)
-                sprite.draw_bars(offset)
-                
-                # Will draw hitboxes for the player
-                if globals.DEBUGGING: 
-
-                    hitbox = sprite.hitbox.copy()
-                    debug(f"x: {hitbox.centerx}, y: {hitbox.centery}")
-                    hitbox.x -= offset
-
-
-                    pygame.draw.rect(screen, "red", hitbox, 2)
-                
-                    attack_hitbox = sprite.attack_hitbox.copy()
-                    attack_hitbox.x -= offset
-                    pygame.draw.rect(screen, "yellow", attack_hitbox, 2)
-
-            elif sprite.type == "enemy":
-                sprite.draw_effects(offset)
-
-                image_rect = sprite.image.get_rect()
-                debug(f"width: {image_rect.width}")
-                debug(f"height: {image_rect.height}")
-                rect = sprite.hitbox.copy()
-                rect.x -= offset
-                image_rect.midbottom = rect.midbottom
-                screen.blit(sprite.image, (image_rect.x, image_rect.y))
-                sprite.draw_bars(offset)
-
-                if globals.DEBUGGING:
-                    hitbox = sprite.hitbox.copy()
-                    hitbox.x -= offset
-                    pygame.draw.rect(screen, "red", hitbox, 2)
-                    
-
-                
-
-            else:
-                rect = sprite.rect.copy()
-                rect.x -= offset
-                screen.blit(sprite.image, rect)
-                # if sprite.type != "shades":
-                #     pygame.draw.rect(screen, "red", rect, 1)
-
-
+    def print_pause_menu(self, screen: pygame.Surface):
+        screen.blit(self.grey_overlay, (0, 0))
+        mouse_pos = pygame.mouse.get_pos()
+        self.button.check_hover(mouse_pos)
+        self.button.draw(screen)

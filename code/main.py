@@ -24,8 +24,7 @@ class Main:
         # self.my_image = pygame.image.load(VIRTUALGUY_PATHS["idle"]+"\\1.png").convert_alpha()
         pygame.display.set_caption("Very high end game")
 
-        self.level = GameLoop()
-        self.offset = 0
+        self.game_loop = GameLoop()
         # Clock
         self.clock = pygame.Clock()
         # Main loop
@@ -51,15 +50,15 @@ class Main:
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_F4:
-                        self.level.state = "paused"
+                        self.game_loop.state = "paused"
 
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_F5:
-                        self.level.state = "running"
+                        self.game_loop.state = "running"
 
             # Reset the debug y offset for each cycle 
             debug.y_offset = 0 
-            self.level.run(self.screen)
+            self.game_loop.run(self.screen)
             
             pygame.display.flip()
             self.clock.tick(60)
